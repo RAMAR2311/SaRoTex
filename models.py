@@ -83,7 +83,8 @@ class ArqueoCaja(db.Model):
     gastos_del_dia = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     observaciones_gastos = db.Column(db.String(255), nullable=True)
     total_efectivo_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    total_transferencia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    total_nequi_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    total_bancolombia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
 class Maneo(db.Model):

@@ -21,7 +21,8 @@ def nuevo():
     ventas_del_dia = Sale.query.filter(db.func.date(Sale.fecha_venta) == fecha_seleccionada).all()
     
     total_efectivo = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'efectivo')
-    total_transferencia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'transferencia')
+    total_nequi = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'nequi')
+    total_bancolombia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'bancolombia')
 
     # Solo gastos en EFECTIVO restan de la caja física.
     # Los gastos por transferencia no afectan los billetes en la registradora.
@@ -55,7 +56,8 @@ def nuevo():
             gastos_del_dia=gastos_del_dia,
             observaciones_gastos=observaciones_gastos,
             total_efectivo_sistema=total_efectivo,
-            total_transferencia_sistema=total_transferencia
+            total_nequi_sistema=total_nequi,
+            total_bancolombia_sistema=total_bancolombia
         )
 
         try:
@@ -71,7 +73,8 @@ def nuevo():
         'arqueo/form.html',
         fecha=fecha_str,
         total_efectivo=total_efectivo,
-        total_transferencia=total_transferencia,
+        total_nequi=total_nequi,
+        total_bancolombia=total_bancolombia,
         arqueo_existente=arqueo_existente,
         gastos_automaticos=gastos_automaticos
     )
@@ -101,11 +104,12 @@ def reporte():
     resumen = {
         'total_base': sum(a.base_inicial for a in arqueos),
         'total_efectivo': sum(a.total_efectivo_sistema for a in arqueos),
-        'total_transferencia': sum(a.total_transferencia_sistema for a in arqueos),
+        'total_nequi': sum(a.total_nequi_sistema for a in arqueos),
+        'total_bancolombia': sum(a.total_bancolombia_sistema for a in arqueos),
         'total_gastos': sum(a.gastos_del_dia for a in arqueos)
     }
     
-    resumen['total_recaudado'] = resumen['total_efectivo'] + resumen['total_transferencia']
+    resumen['total_recaudado'] = resumen['total_efectivo'] + resumen['total_nequi'] + resumen['total_bancolombia']
     resumen['efectivo_esperado'] = (resumen['total_base'] + resumen['total_efectivo']) - resumen['total_gastos']
 
     fecha_generacion = obtener_hora_bogota().strftime('%Y-%m-%d %H:%M')

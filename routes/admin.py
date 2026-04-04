@@ -238,8 +238,9 @@ def balance_financiero():
     ventas_query = Sale.query.filter(Sale.fecha_venta >= inicio_dt, Sale.fecha_venta < fin_dt_query).all()
     
     ventas_efectivo = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'efectivo')
-    ventas_transferencia = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'transferencia')
-    total_ingresos = ventas_efectivo + ventas_transferencia
+    ventas_nequi = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'nequi')
+    ventas_bancolombia = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'bancolombia')
+    total_ingresos = ventas_efectivo + ventas_nequi + ventas_bancolombia
 
     # 2. Costo de Mercancía Vendida (COGS)
     detalles_vendidos = db.session.query(SaleDetail, Product).join(Product, SaleDetail.product_id == Product.id).join(Sale, SaleDetail.sale_id == Sale.id).filter(
@@ -260,7 +261,8 @@ def balance_financiero():
 
     datos_financieros = {
         'ventas_efectivo': float(ventas_efectivo),
-        'ventas_transferencia': float(ventas_transferencia),
+        'ventas_nequi': float(ventas_nequi),
+        'ventas_bancolombia': float(ventas_bancolombia),
         'total_ingresos': float(total_ingresos),
         'costos_directos': float(costos_directos),
         'costos_indirectos': float(costos_indirectos),

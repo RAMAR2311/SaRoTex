@@ -52,10 +52,16 @@
                         <h4 class="mb-0 text-success fw-bold">${{ "%.2f"|format(resumen.total_efectivo) }}</h4>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
+                <div class="col-sm-6 col-md-2">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Bancos / Transf. Sistema</small>
-                        <h4 class="mb-0 text-info fw-bold">${{ "%.2f"|format(resumen.total_transferencia) }}</h4>
+                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Nequi Sistema</small>
+                        <h4 class="mb-0 fw-bold" style="color: #8700c3;">${{ "%.2f"|format(resumen.total_nequi) }}</h4>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-2">
+                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
+                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Bancolombia Sistema</small>
+                        <h4 class="mb-0 fw-bold" style="color: #d4a017;">${{ "%.2f"|format(resumen.total_bancolombia) }}</h4>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-3">
@@ -68,7 +74,7 @@
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #EBDAB6 !important;">
                         <small class="text-secondary fw-bold d-block mb-1">CAJA FÍSICA ESPERADA FINAL</small>
                         <h4 class="mb-0 text-dark fw-bold">${{ "%.2f"|format(resumen.efectivo_esperado) }}</h4>
-                        <small class="text-muted d-block mt-1" style="font-size:0.7rem;">(Base Inicial + VentasCash) - Gastos</small>
+                <small class="text-muted d-block mt-1" style="font-size:0.7rem;">(Base Inicial + VentasCash) - Gastos</small>
                     </div>
                 </div>
             </div>
@@ -85,7 +91,8 @@
                             {% endif %}
                             <th width="12%" class="text-primary">Base Inicial</th>
                             <th width="12%" class="text-success">Ventas Cash</th>
-                            <th width="12%" class="text-info">Transf Bancos</th>
+                            <th width="10%" style="color: #8700c3;">Nequi</th>
+                            <th width="10%" style="color: #d4a017;">Bancolombia</th>
                             <th width="15%" class="text-danger">Salida (Gastos)</th>
                             <th width="24%">Detalle del Gasto</th>
                         </tr>
@@ -101,7 +108,8 @@
 
                             <td class="text-end text-primary fw-bold">${{ "%.2f"|format(arqueo.base_inicial) }}</td>
                             <td class="text-end text-success fw-bold">${{ "%.2f"|format(arqueo.total_efectivo_sistema) }}</td>
-                            <td class="text-end text-info fw-bold">${{ "%.2f"|format(arqueo.total_transferencia_sistema) }}</td>
+                            <td class="text-end fw-bold" style="color: #8700c3;">${{ "%.2f"|format(arqueo.total_nequi_sistema) }}</td>
+                            <td class="text-end fw-bold" style="color: #d4a017;">${{ "%.2f"|format(arqueo.total_bancolombia_sistema) }}</td>
                             
                             <!-- Gastos con validación de color si es nulo -->
                             <td class="text-end {% if arqueo.gastos_del_dia > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
@@ -114,7 +122,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
+                            <td colspan="8" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

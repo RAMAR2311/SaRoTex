@@ -30,8 +30,7 @@
     </div>
 
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-6 col-md-6 mb-3">
-        <!-- Borde Ultra-Grueso de Acabado (Azul Turquesa) -->
+    <div class="col-4 col-md-4 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-blue) !important;">
             <div class="card-body py-4 ps-4">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-money-bills me-1"></i> Entradas en Efectivo</p>
@@ -40,12 +39,20 @@
         </div>
     </div>
     
-    <div class="col-6 col-md-6 mb-3">
-        <!-- Borde Ultra-Grueso de Acabado (Rosa Pastel) -->
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-pink) !important;">
+    <div class="col-4 col-md-4 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #8700c3 !important;">
             <div class="card-body py-4 ps-4">
-                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-building-columns me-1"></i> Depósitos & Transferencias</p>
-                <h2 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ "%.2f"|format(total_transferencia) }}</h2>
+                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-mobile-screen me-1"></i> Ventas Nequi</p>
+                <h2 class="fw-bolder m-0" style="color: #8700c3;">${{ "%.2f"|format(total_nequi) }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-4 col-md-4 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #ffc107 !important;">
+            <div class="card-body py-4 ps-4">
+                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-building-columns me-1"></i> Ventas Bancolombia</p>
+                <h2 class="fw-bolder m-0" style="color: #d4a017;">${{ "%.2f"|format(total_bancolombia) }}</h2>
             </div>
         </div>
     </div>
@@ -108,8 +115,10 @@
                     <td class="text-center align-middle">
                         {% if venta.metodo_pago == 'efectivo' %}
                             <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
-                        {% else %}
-                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> Transferencia</span>
+                        {% elif venta.metodo_pago == 'nequi' %}
+                            <span class="badge border rounded-pill px-3 py-2" style="background-color: rgba(135,0,195,0.1); color: #8700c3; border-color: #8700c3 !important;"><i class="fa-solid fa-mobile-screen me-1"></i> Nequi</span>
+                        {% elif venta.metodo_pago == 'bancolombia' %}
+                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</span>
                         {% endif %}
                     </td>
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5">

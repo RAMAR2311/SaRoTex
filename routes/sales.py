@@ -144,13 +144,15 @@ def historial():
     
     # Auditar y cruzar sumatorios de métricas de pago por Python (List Comprehension seguro)
     total_efectivo = sum(v.monto_total for v in ventas if v.metodo_pago == 'efectivo')
-    total_transferencia = sum(v.monto_total for v in ventas if v.metodo_pago == 'transferencia')
+    total_nequi = sum(v.monto_total for v in ventas if v.metodo_pago == 'nequi')
+    total_bancolombia = sum(v.monto_total for v in ventas if v.metodo_pago == 'bancolombia')
 
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
                            ventas=ventas, 
                            total_efectivo=total_efectivo,
-                           total_transferencia=total_transferencia,
+                           total_nequi=total_nequi,
+                           total_bancolombia=total_bancolombia,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
 
