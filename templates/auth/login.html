@@ -18,12 +18,9 @@
     <!-- Columna Izquierda: Cuadro de Acceso Segregado -->
     <div class="col-md-6 col-lg-5 mb-4">
         <div class="card card-custom p-5 border-0 shadow-lg rounded-4" style="background-color: white; border-top: 5px solid var(--brand-gold) !important;">
-            <div class="text-center mb-4">
-                <img src="{{ url_for('static', filename='img/saro-icon.jpeg') }}" 
-                     alt="Logo SaRo Tex" 
-                     class="img-fluid rounded-circle shadow" 
-                     style="width: 120px; height: 120px; object-fit: cover;">
-                <h2 class="mt-3">SaRo Tex Lenceria para tu hogar.</h2>
+            <div class="text-center mb-5">
+                <h3 class="fw-bold text-brand-black">Acceso al Panel</h3>
+                <p class="text-muted">Introduce tus credenciales operativas</p>
             </div>
             
             <form method="POST" action="/auth/login">
@@ -49,12 +46,12 @@
 
     <!-- Columna Derecha: Logo Central y Limpio -->
     <div class="col-md-6 col-lg-6 d-none d-md-flex flex-column justify-content-center align-items-center text-center">
-        <div style="font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 800; color: var(--brand-gold); text-shadow: 0 4px 6px rgba(0,0,0,0.05); letter-spacing: -2px;">
-            SaRo Tex
-        </div>
-        <p style="font-size: 1.25rem; color: var(--brand-dark-gold); font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">
-            Lenceria para tu hogar.
-        </p>
+        <img src="{{ url_for('static', filename='img/saro-icon.jpeg') }}" 
+             alt="Logo SaRo Tex" 
+             class="img-fluid rounded-4 shadow-lg" 
+             style="max-width: 380px; width: 100%; object-fit: cover;">
+        <h2 class="mt-4 fw-bold" style="font-family: 'Playfair Display', serif; color: var(--brand-gold); letter-spacing: -1px;">SaRo Tex</h2>
+        <p style="font-size: 1.1rem; color: var(--brand-dark-gold); font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">Lenceria para tu hogar.</p>
     </div>
 </div>
 {% endblock %}
