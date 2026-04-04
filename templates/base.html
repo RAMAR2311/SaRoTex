@@ -129,7 +129,7 @@
 </head>
 <body>
     <!-- Navbar Saro Tex -->
-    <nav class="navbar navbar-expand-xl navbar-custom mb-5 shadow-sm">
+    <nav class="navbar navbar-light navbar-custom mb-5 shadow-sm">
         <div class="container">
             <!-- Brand Logo -->
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
@@ -139,7 +139,7 @@
 
             {% if current_user.is_authenticated %}
             <!-- Botón Toggler para Menú Hamburguesa -->
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler border-0 shadow-none bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
