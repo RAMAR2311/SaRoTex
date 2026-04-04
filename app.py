@@ -75,16 +75,18 @@ if __name__ == '__main__':
     with app.app_context():
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         
-        if not User.query.filter_by(email='admin@saro.com').first():
-            master_admin = User(
-                nombre='Administrador Principal',
-                email='admin@saro.com',
-                password_hash=generate_password_hash('Admin123'),
-                rol='admin'
-            )
-            db.session.add(master_admin)
-            db.session.commit()
-            logging.info("Usuario maestro 'admin@saro.com' fue creado automáticamente.")
+        # El bloque de creación automática de usuario se recomienda manejarlo manualmente
+        # o mediante scripts de sembrado después de las migraciones para evitar errores en producción.
+        # if not User.query.filter_by(email='admin@saro.com').first():
+        #     master_admin = User(
+        #         nombre='Administrador Principal',
+        #         email='admin@sarotex.com', # Actualizado según solicitud
+        #         password_hash=generate_password_hash('123456'), # Actualizado según solicitud
+        #         rol='admin'
+        #     )
+        #     db.session.add(master_admin)
+        #     db.session.commit()
+        #     logging.info("Usuario maestro configurado.")
             
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     app.run(debug=debug_mode)
