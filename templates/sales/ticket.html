@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket de Compra #{{ venta.id }} - cases.com</title>
+    <title>Ticket de Compra #{{ venta.id }} - Saro Tex</title>
     <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 80mm) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -22,13 +22,13 @@
             max-width: 380px; /* Ancho de impresora térmica 80mm */
             padding: 25px 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            color: #1A1A1A; /* Negro de nuestra paleta */
+            color: #010100; /* Negro Profundo Saro Tex */
             box-sizing: border-box;
         }
 
         .header {
             text-align: center;
-            border-bottom: 2px dashed #1A1A1A;
+            border-bottom: 2px dashed #010100;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
@@ -55,7 +55,7 @@
 
         .table-items th {
             text-align: left;
-            border-bottom: 1px solid #1A1A1A;
+            border-bottom: 1px solid #010100;
             padding-bottom: 8px;
             font-weight: 700;
         }
@@ -70,7 +70,7 @@
         .col-sub { width: 30%; text-align: right; }
 
         .totals {
-            border-top: 2px dashed #1A1A1A;
+            border-top: 2px dashed #010100;
             padding-top: 20px;
             margin-bottom: 25px;
         }
@@ -80,11 +80,11 @@
             justify-content: space-between;
             font-size: 1.4rem;
             font-weight: 700;
-            /* Branding Inyectado: Resalte estricto en Azul Turquesa (#A3D8DE) */
-            background-color: #A3D8DE;
+            /* Branding Inyectado: Resalte estricto en Saro Tex Dorado Principal (#C7A76B) */
+            background-color: #C7A76B;
             padding: 12px 15px;
             border-radius: 6px;
-            border: 1px solid #1A1A1A;
+            border: 1px solid #010100;
         }
 
         .footer {
@@ -97,9 +97,9 @@
             display: block;
             width: 100%;
             padding: 15px;
-            background-color: #1A1A1A;
+            background-color: #010100;
             color: #FFFFFF;
-            border: 2px solid #1A1A1A;
+            border: 2px solid #010100;
             font-size: 1.1rem;
             border-radius: 6px;
             font-weight: bold;
@@ -111,7 +111,7 @@
 
         .btn-print:hover {
             background-color: #FFFFFF;
-            color: #1A1A1A;
+            color: #010100;
         }
 
         /* MEDIA QUERY DE IMPRESIÓN RIGUROSA: Las reglas CSS aquí omiten UI inútil al imprimir en papel */
@@ -120,7 +120,7 @@
             .ticket { box-shadow: none; max-width: 100%; padding: 0; margin: 0 auto; width: 80mm; border: none; }
             .btn-print { display: none; }
             .total-row { background-color: transparent !important; border: none !important; padding: 10px 0 !important; }
-            .total-row * { color: #1A1A1A !important; } /* Desactivar Azul para impresiones monocromas */
+            .total-row * { color: #010100 !important; } /* Desactivar colores para impresiones monocromas */
         }
     </style>
 </head>
@@ -128,7 +128,8 @@
 
 <div class="ticket">
     <div class="header">
-        <h1 class="logo">cases.com</h1>
+        <h1 class="logo">Saro Tex</h1>
+        <p class="info" style="margin-bottom: 5px;">Lencería & Hogar</p>
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
@@ -168,8 +169,8 @@
 
     <div class="footer">
         <p style="font-size: 1rem; font-weight: bold;">¡Gracias por tu compra!</p>
-        <p>Políticas de Tienda: Devoluciones únicamente presentando ticket impreso o digital.</p>
-        <p>Soporte: ventas@cases.com</p>
+        <p>Viste tu hogar de elegancia y confort.</p>
+        <p>Soporte: contacto@sarotex.com</p>
     </div>
 
     <button class="btn-print" onclick="window.print()">

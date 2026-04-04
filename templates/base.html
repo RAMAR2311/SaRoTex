@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cases.com - CRM & POS</title>
+    <title>Saro Tex - CRM & POS</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/saro-icon.png') }}">
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
@@ -11,12 +13,13 @@
     <style>
         /* REGLA DE BRANDING ESTRICTA Y COLORES */
         :root {
-            --brand-pink: #F9C8D3;   /* Rosa Pastel */
-            --brand-blue: #A3D8DE;   /* Azul Turquesa */
-            --brand-black: #1A1A1A;  /* Negro */
-            --brand-white: #FFFFFF;  /* Blanco */
-            
-            --brand-bg: #F8F9FA;     /* Fondo gris súper claro para dar profundidad al blanco */
+            --brand-gold: #C7A76B;       /* Dorado Principal */
+            --brand-champagne: #EBDAB6;  /* Champagne / Beige */
+            --brand-black: #010100;      /* Negro Profundo */
+            --brand-white: #FFFFFF;      /* Blanco */
+            --brand-bg: #FBFBFB;         /* Blanco Puro / Fondo principal */
+            --brand-dark-gold: #756247;  /* Marrón/Dorado Oscuro */
+            --brand-charcoal: #23201A;   /* Gris Carbón */
         }
 
         body {
@@ -27,17 +30,19 @@
         }
 
         /* Variables Utilitarias */
-        .bg-brand-blue { background-color: var(--brand-blue) !important; color: var(--brand-black); }
-        .bg-brand-pink { background-color: var(--brand-pink) !important; color: var(--brand-black); }
+        .bg-brand-gold, .bg-brand-pink { background-color: var(--brand-gold) !important; color: var(--brand-black); }
+        .bg-brand-champagne, .bg-brand-blue { background-color: var(--brand-champagne) !important; color: var(--brand-black); }
         .bg-brand-white { background-color: var(--brand-white) !important; }
         .text-brand-black { color: var(--brand-black) !important; }
-        .text-brand-pink { color: var(--brand-pink) !important; }
+        .text-brand-gold, .text-brand-pink { color: var(--brand-gold) !important; }
+        .text-brand-blue { color: var(--brand-charcoal) !important; }
 
-        /* Navbar E-commerce Vibe (Ahora en Rosa Pastel) */
+        /* Navbar Elegante Saro Tex */
         .navbar-custom {
-            background-color: var(--brand-pink);
+            background-color: var(--brand-gold);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             padding: 1rem 0;
+            border-bottom: 2px solid var(--brand-dark-gold);
         }
         
         .navbar-custom .navbar-brand {
@@ -45,63 +50,70 @@
             color: var(--brand-black);
             font-size: 1.75rem;
             letter-spacing: -0.5px;
+            font-family: 'Playfair Display', serif;
         }
 
         .navbar-custom .nav-link {
             color: var(--brand-black);
             font-weight: 500;
             margin-left: 1rem;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, color 0.2s;
         }
 
         .navbar-custom .nav-link:hover {
-            opacity: 0.7;
+            opacity: 1;
+            color: var(--brand-white) !important;
         }
 
         /* Botones Pro */
-        .btn-pink {
-            background-color: var(--brand-pink);
+        .btn-pink, .btn-primary {
+            background-color: var(--brand-gold);
             color: var(--brand-black);
             font-weight: 600;
             border: none;
             transition: all 0.2s ease-in-out;
         }
-        .btn-pink:hover {
-            background-color: #f0aebb;
+        .btn-pink:hover, .btn-primary:hover {
+            background-color: var(--brand-dark-gold);
+            color: var(--brand-white);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(249, 200, 211, 0.4);
+            box-shadow: 0 4px 12px rgba(117, 98, 71, 0.4);
         }
 
-        .btn-blue {
-            background-color: var(--brand-blue);
-            color: var(--brand-black);
+        .btn-blue, .btn-secondary {
+            background-color: var(--brand-charcoal);
+            color: var(--brand-champagne);
             font-weight: 600;
             border: none;
             transition: all 0.2s ease-in-out;
         }
-        .btn-blue:hover {
-            background-color: #8bc3c9;
+        .btn-blue:hover, .btn-secondary:hover {
+            background-color: var(--brand-black);
+            color: var(--brand-gold);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(163, 216, 222, 0.4);
+            box-shadow: 0 4px 12px rgba(35, 32, 26, 0.4);
         }
 
         /* Superficies Claras y Limpias */
         .card-custom {
             background-color: var(--brand-white);
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            border: 1px solid var(--brand-champagne);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.04);
         }
 
         /* Tablas */
         .table-custom {
             background-color: var(--brand-white);
             border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border: 1px solid var(--brand-champagne);
         }
         .table-custom thead th {
             color: var(--brand-black);
-            /* Borde inferior de la tabla ahora en rosa pastel para hacer juego con el navbar */
-            border-bottom: 2px solid var(--brand-pink);
+            background-color: var(--brand-champagne);
+            border-bottom: 2px solid var(--brand-gold);
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
@@ -110,14 +122,20 @@
         .table-custom tbody td {
             padding: 1.25rem 1rem;
             vertical-align: middle;
+            border-bottom: 1px solid rgba(235, 218, 182, 0.5); /* Champagne muy claro */
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar cases.com -->
+    <!-- Navbar Saro Tex -->
     <nav class="navbar navbar-expand-lg navbar-custom mb-5">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">cases.com</a>
+            <!-- Brand Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-crown me-2" style="color: var(--brand-black);"></i>
+                Saro Tex
+            </a>
             {% if current_user.is_authenticated %}
             <!-- Botón Hamburguesa Móvil Oculto Sin Sesión -->
             <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -140,10 +158,13 @@
                         <a class="nav-link text-brand-black" href="/admin/vendedores"><i class="fa-solid fa-users text-muted"></i> Personal</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-pink"></i> Catálogo Físico</a>
+                        <a class="nav-link text-brand-black" href="/gastos"><i class="fa-solid fa-money-bill-transfer" style="color: var(--brand-charcoal);"></i> Gastos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-gold"></i> Catálogo Físico</a>
                     </li>
                     <li class="nav-item border-start ps-3 border-dark border-opacity-25">
-                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue" style="color: #A3D8DE;"></i> Arqueo de Caja</a>
+                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator" style="color: var(--brand-dark-gold);"></i> Arqueo de Caja</a>
                     </li>
                     {% elif current_user.rol == 'vendedor' %}
                     <!-- Vistas Estrictamente Operativas (Cajeros) -->
@@ -151,10 +172,16 @@
                         <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-muted"></i> Catálogo Rápido</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-pink"></i> Módulo de Caja</a>
+                        <a class="nav-link text-brand-black fw-bold" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-gold"></i> Módulo de Caja</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/admin/maneos"><i class="fa-solid fa-handshake" style="color: var(--brand-charcoal);"></i> Maneos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success"></i> Gastos</a>
                     </li>
                     <li class="nav-item border-start ps-3 border-dark border-opacity-25">
-                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue" style="color: #A3D8DE;"></i> Arqueo</a>
+                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator" style="color: var(--brand-dark-gold);"></i> Arqueo</a>
                     </li>
                     {% endif %}
                     
