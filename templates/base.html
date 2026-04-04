@@ -128,76 +128,107 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar Saro Tex -->
-    <nav class="navbar navbar-expand-lg navbar-custom mb-5">
-        <div class="container">
-            <!-- Brand Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                <i class="fa-solid fa-crown me-2" style="color: var(--brand-black);"></i>
+    <!-- Navbar SaRo Tex -->
+    <nav class="navbar navbar-custom shadow-sm mb-5">
+        <div class="container d-flex align-items-center">
+
+            {% if current_user.is_authenticated %}
+            <!-- Botón Hamburguesa a la IZQUIERDA -->
+            <button class="btn border-0 p-2 me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-controls="menuLateral" style="font-size: 1.5rem; color: var(--brand-black);">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            {% endif %}
+
+            <!-- Nombre de la marca CENTRADO -->
+            <a class="navbar-brand mx-auto d-flex align-items-center m-0" href="{{ url_for('index') }}" style="font-family: 'Playfair Display', serif; font-weight: 800; font-size: 1.6rem; color: var(--brand-black); letter-spacing: -0.5px;">
+                <i class="fa-solid fa-crown me-2" style="color: var(--brand-dark-gold);"></i>
                 SaRo Tex Lenceria para tu hogar.
             </a>
-            {% if current_user.is_authenticated %}
-            <!-- Botón Hamburguesa Móvil Oculto Sin Sesión -->
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% if current_user.rol == 'admin' %}
-                    <!-- Enlaces Únicos para el Administrador de la Tienda -->
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-muted"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/inventory"><i class="fa-solid fa-box text-muted"></i> Inventario</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/sales/nueva"><i class="fa-solid fa-cash-register text-muted"></i> Caja Terminal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/admin/vendedores"><i class="fa-solid fa-users text-muted"></i> Personal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/gastos"><i class="fa-solid fa-money-bill-transfer" style="color: var(--brand-charcoal);"></i> Gastos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/providers"><i class="fa-solid fa-truck-field" style="color: var(--brand-dark-gold);"></i> Proveedores</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-gold"></i> Catálogo Físico</a>
-                    </li>
-                    <li class="nav-item border-start ps-3 border-dark border-opacity-25">
-                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator" style="color: var(--brand-dark-gold);"></i> Arqueo de Caja</a>
-                    </li>
-                    {% elif current_user.rol == 'vendedor' %}
-                    <!-- Vistas Estrictamente Operativas (Cajeros) -->
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-muted"></i> Catálogo Rápido</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-gold"></i> Módulo de Caja</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/admin/maneos"><i class="fa-solid fa-handshake" style="color: var(--brand-charcoal);"></i> Maneos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success"></i> Gastos</a>
-                    </li>
-                    <li class="nav-item border-start ps-3 border-dark border-opacity-25">
-                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator" style="color: var(--brand-dark-gold);"></i> Arqueo</a>
-                    </li>
-                    {% endif %}
-                    
-                    <!-- Interfaz de Desconexión / Fin de Turno -->
-                    <li class="nav-item ms-lg-3">
-                        <!-- En rojo encendido para evitar cierres de sesión accidentales -->
-                        <a class="nav-link fw-bold text-danger" href="{{ url_for('auth_bp.logout') }}"><i class="fa-solid fa-sign-out-alt"></i> Salir</a>
-                    </li>
-                </ul>
-            </div>
-            {% endif %}
+
         </div>
     </nav>
+
+    {% if current_user.is_authenticated %}
+    <!-- Panel Lateral Izquierdo (Offcanvas) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel" style="max-width: 320px;">
+        <!-- Cabecera del Panel -->
+        <div class="offcanvas-header text-white" style="background-color: var(--brand-black);">
+            <h5 class="offcanvas-title fw-bold" id="menuLateralLabel">
+                <i class="fa-solid fa-crown me-2" style="color: var(--brand-gold);"></i> Menú Principal
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <!-- Cuerpo del Panel con los Enlaces -->
+        <div class="offcanvas-body p-0">
+            <div class="list-group list-group-flush">
+
+                {% if current_user.rol == 'admin' %}
+                <!-- Sección: Operaciones -->
+                <div class="px-3 pt-3 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px;">Operaciones</small></div>
+                <a href="/admin/dashboard" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-chart-pie me-3 text-muted" style="width: 20px;"></i> Dashboard
+                </a>
+                <a href="/sales/nueva" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-cash-register me-3 text-muted" style="width: 20px;"></i> Caja Terminal
+                </a>
+                <a href="/inventory" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-box me-3 text-muted" style="width: 20px;"></i> Inventario
+                </a>
+                <a href="/sales/catalogo" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-book-open me-3" style="width: 20px; color: var(--brand-gold);"></i> Catálogo Físico
+                </a>
+
+                <!-- Sección: Finanzas -->
+                <div class="px-3 pt-4 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px;">Finanzas</small></div>
+                <a href="/gastos" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-money-bill-transfer me-3" style="width: 20px; color: var(--brand-charcoal);"></i> Gastos
+                </a>
+                <a href="/arqueo/nuevo" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-calculator me-3" style="width: 20px; color: var(--brand-dark-gold);"></i> Arqueo de Caja
+                </a>
+
+                <!-- Sección: Gestión -->
+                <div class="px-3 pt-4 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px;">Gestión</small></div>
+                <a href="/providers" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-truck-field me-3" style="width: 20px; color: var(--brand-dark-gold);"></i> Proveedores
+                </a>
+                <a href="/admin/vendedores" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-users me-3 text-muted" style="width: 20px;"></i> Personal
+                </a>
+                <a href="/admin/maneos" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-handshake me-3" style="width: 20px; color: var(--brand-charcoal);"></i> Maneos
+                </a>
+
+                {% elif current_user.rol == 'vendedor' %}
+                <!-- Menú para Vendedores -->
+                <div class="px-3 pt-3 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px;">Mi Estación</small></div>
+                <a href="/sales/nueva" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-cash-register me-3" style="width: 20px; color: var(--brand-gold);"></i> Módulo de Caja
+                </a>
+                <a href="/sales/catalogo" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-book-open me-3 text-muted" style="width: 20px;"></i> Catálogo Rápido
+                </a>
+                <a href="/admin/maneos" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-handshake me-3" style="width: 20px; color: var(--brand-charcoal);"></i> Maneos
+                </a>
+                <a href="/gastos" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-money-bill-transfer me-3 text-success" style="width: 20px;"></i> Gastos
+                </a>
+                <a href="/arqueo/nuevo" class="list-group-item list-group-item-action border-0 py-3 px-4">
+                    <i class="fa-solid fa-calculator me-3" style="width: 20px; color: var(--brand-dark-gold);"></i> Arqueo
+                </a>
+                {% endif %}
+
+                <!-- Separador y Cerrar Sesión -->
+                <hr class="my-2">
+                <a href="{{ url_for('auth_bp.logout') }}" class="list-group-item list-group-item-action border-0 py-3 px-4 text-danger fw-bold">
+                    <i class="fa-solid fa-sign-out-alt me-3" style="width: 20px;"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- App Container -->
     <main class="container mb-5">
