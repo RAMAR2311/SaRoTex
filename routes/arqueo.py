@@ -1,14 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Sale, ArqueoCaja, Expense
+from models import db, Sale, ArqueoCaja, Expense, obtener_hora_bogota
 from decorators import admin_required
-from datetime import datetime, date
-import pytz
+from datetime import datetime
 
 arqueo_bp = Blueprint('arqueo_bp', __name__)
-
-def obtener_hora_bogota():
-    return datetime.now(pytz.timezone('America/Bogota')).replace(tzinfo=None)
 
 @arqueo_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required

@@ -1,6 +1,6 @@
 import os
 from werkzeug.utils import secure_filename
-from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from models import db, Product, StockAdjustment
 from decorators import admin_required

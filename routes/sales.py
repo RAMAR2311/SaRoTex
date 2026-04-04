@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort
+from flask import Blueprint, request, jsonify, render_template
 from flask_login import login_required, current_user
 from models import db, Product, Sale, SaleDetail, obtener_hora_bogota
 from decorators import admin_required

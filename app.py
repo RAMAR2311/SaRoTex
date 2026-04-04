@@ -14,7 +14,7 @@ def create_app():
     
     # Configuración mediante variables de entorno (con valores por defecto seguros para desarrollo)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///crm_inventory.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
@@ -37,15 +37,13 @@ def create_app():
     from routes.auth import auth_bp
     from routes.arqueo import arqueo_bp
     from routes.gastos import gastos_bp
+    from routes.admin import admin_bp
     
     app.register_blueprint(sales_bp, url_prefix='/sales')
     app.register_blueprint(inventory_bp, url_prefix='/inventory')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(arqueo_bp, url_prefix='/arqueo')
     app.register_blueprint(gastos_bp, url_prefix='/gastos')
-    
-    # Registro de Blueprint Admin
-    from routes.admin import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
     @app.route('/')
@@ -63,29 +61,23 @@ def create_app():
     return app
 
 if __name__ == '__main__':
+    import logging
+    from werkzeug.security import generate_password_hash
+
     app = create_app()
     
-    # ---------------- LÓGICA DE INICIALIZACIÓN ----------------
     with app.app_context():
-        from models import db, User
-        from werkzeug.security import generate_password_hash
-        
-        # Las tablas ahora son gestionadas por Flask-Migrate con PostgreSQL
-        # db.create_all()
-        
-        # Crear la carpeta de imágenes si no existe
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         
-        # Verificamos e instanciamos al Administrador si no existe
         if not User.query.filter_by(email='admin@saro.com').first():
             master_admin = User(
                 nombre='Administrador Principal',
                 email='admin@saro.com',
                 password_hash=generate_password_hash('Admin123'),
-                rol='admin' # Rol dictaminado por los requerimientos
+                rol='admin'
             )
             db.session.add(master_admin)
             db.session.commit()
-            print("🚀 [INFO] Usuario maestro 'admin@saro.com' fue creado automáticamente.")
+            logging.info("Usuario maestro 'admin@saro.com' fue creado automáticamente.")
             
     app.run(debug=True)

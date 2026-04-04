@@ -1,8 +1,12 @@
-from flask import Blueprint, render_template, abort, request, redirect, url_for, flash
+import calendar
+from datetime import datetime, timedelta
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, obtener_hora_bogota
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
+
+from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, obtener_hora_bogota
 from decorators import admin_required
 
 admin_bp = Blueprint('admin_bp', __name__)
@@ -211,7 +215,6 @@ def balance_financiero():
         fecha_fin_str = request.args.get('fecha_fin')
 
     hoy = obtener_hora_bogota()
-    import calendar
     if not fecha_inicio_str or not fecha_fin_str:
         # Por defecto, el mes actual
         primer_dia = hoy.replace(day=1)
@@ -221,7 +224,6 @@ def balance_financiero():
         fecha_inicio_str = primer_dia.strftime('%Y-%m-%d')
         fecha_fin_str = ultimo_dia.strftime('%Y-%m-%d')
 
-    from datetime import datetime, timedelta
     try:
         inicio_dt = datetime.strptime(fecha_inicio_str, '%Y-%m-%d')
         fin_dt = datetime.strptime(fecha_fin_str, '%Y-%m-%d')
