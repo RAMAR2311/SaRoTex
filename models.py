@@ -108,6 +108,7 @@ class Expense(db.Model):
     categoria = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.String(255), nullable=True)
     monto = db.Column(db.Numeric(10, 2), nullable=False)
+    metodo_pago = db.Column(db.String(50), nullable=False, default='efectivo')
     fecha_gasto = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     usuario = db.relationship('User', backref='gastos', lazy=True)

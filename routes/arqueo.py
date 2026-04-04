@@ -23,10 +23,12 @@ def nuevo():
     total_efectivo = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'efectivo')
     total_transferencia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'transferencia')
 
-    # Calcular gastos automáticos del día
+    # Solo gastos en EFECTIVO restan de la caja física.
+    # Los gastos por transferencia no afectan los billetes en la registradora.
     gastos_diarios_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
-        Expense.tipo_gasto == 'Gasto Diario'
+        Expense.tipo_gasto == 'Gasto Diario',
+        Expense.metodo_pago == 'efectivo'
     ).all()
     gastos_automaticos = float(sum(g.monto for g in gastos_diarios_registros))
 
@@ -36,10 +38,11 @@ def nuevo():
     if request.method == 'POST':
         base_inicial = float(request.form.get('base_inicial', 0.0))
         
-        # Recalcular gastos automáticos por seguridad en el backend
+        # Recalcular solo gastos en EFECTIVO por seguridad en el backend
         gastos_recalculados = Expense.query.filter(
             db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
-            Expense.tipo_gasto == 'Gasto Diario'
+            Expense.tipo_gasto == 'Gasto Diario',
+            Expense.metodo_pago == 'efectivo'
         ).all()
         gastos_del_dia = float(sum(g.monto for g in gastos_recalculados))
         

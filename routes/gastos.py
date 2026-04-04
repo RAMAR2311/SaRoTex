@@ -32,6 +32,8 @@ def index():
         else:
             fecha_obj = obtener_hora_bogota()
 
+        metodo_pago = request.form.get('metodo_pago', 'efectivo')
+
         try:
             nuevo_gasto = Expense(
                 usuario_id=current_user.id,
@@ -39,6 +41,7 @@ def index():
                 categoria=categoria,
                 descripcion=descripcion,
                 monto=monto,
+                metodo_pago=metodo_pago,
                 fecha_gasto=fecha_obj
             )
             db.session.add(nuevo_gasto)
