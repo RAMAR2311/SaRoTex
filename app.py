@@ -16,6 +16,10 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
     # Inicializar Extensiones
@@ -82,4 +86,5 @@ if __name__ == '__main__':
             db.session.commit()
             logging.info("Usuario maestro 'admin@saro.com' fue creado automáticamente.")
             
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode)
