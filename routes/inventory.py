@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+from io import BytesIO
 from werkzeug.utils import secure_filename
 from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
@@ -127,3 +129,95 @@ def ver_producto(id):
     producto = Product.query.get_or_404(id)
     ajustes = StockAdjustment.query.filter_by(product_id=id).order_by(StockAdjustment.fecha_ajuste.desc()).all()
     return render_template('inventory/ver.html', producto=producto, ajustes=ajustes)
+@inventory_bp.route('/carga_masiva', methods=['POST'])
+@login_required
+@admin_required
+def carga_masiva():
+    if 'archivo_excel' not in request.files:
+        flash('No se seleccionó ningún archivo.', 'danger')
+        return redirect(url_for('inventory_bp.index'))
+
+    file = request.files['archivo_excel']
+    if file.filename == '':
+        flash('El archivo no tiene nombre.', 'danger')
+        return redirect(url_for('inventory_bp.index'))
+
+    try:
+        # Leer el Excel usando pandas
+        # Usamos BytesIO para leerlo directamente de memoria sin guardar en disco
+        df = pd.read_excel(BytesIO(file.read()))
+        
+        # Validar columnas requeridas
+        columnas_requeridas = ['nombre', 'sku', 'cantidad_stock', 'precio_costo', 'precio_minimo', 'precio_sugerido']
+        for col in columnas_requeridas:
+            if col not in df.columns:
+                flash(f'Falta la columna requerida: {col}', 'danger')
+                return redirect(url_for('inventory_bp.index'))
+
+        productos_creados = 0
+        productos_actualizados = 0
+
+        for index, row in df.iterrows():
+            sku = str(row['sku']).strip()
+            nombre = str(row['nombre']).strip()
+            cantidad = int(row['cantidad_stock'])
+            p_costo = float(row['precio_costo'])
+            p_minimo = float(row['precio_minimo'])
+            p_sugerido = float(row['precio_sugerido'])
+            obs = str(row['observacion']) if 'observacion' in df.columns and pd.notna(row['observacion']) else ""
+
+            producto = Product.query.filter_by(sku=sku).first()
+
+            if producto:
+                # Actualizar existente
+                stock_anterior = producto.cantidad_stock
+                producto.nombre = nombre
+                producto.cantidad_stock += cantidad # Sumamos la nueva cantidad
+                producto.precio_costo = p_costo
+                producto.precio_minimo = p_minimo
+                producto.precio_sugerido = p_sugerido
+                producto.observacion = obs
+                
+                # Registrar ajuste en Kardex
+                ajuste = StockAdjustment(
+                    product_id=producto.id,
+                    admin_id=current_user.id,
+                    tipo_movimiento='Carga Masiva (Update)',
+                    stock_anterior=stock_anterior,
+                    stock_nuevo=producto.cantidad_stock
+                )
+                db.session.add(ajuste)
+                productos_actualizados += 1
+            else:
+                # Crear nuevo
+                nuevo_prod = Product(
+                    nombre=nombre,
+                    sku=sku,
+                    cantidad_stock=cantidad,
+                    precio_costo=p_costo,
+                    precio_minimo=p_minimo,
+                    precio_sugerido=p_sugerido,
+                    observacion=obs
+                )
+                db.session.add(nuevo_prod)
+                db.session.flush() # Para obtener el ID antes del commit final
+
+                # Registrar ajuste inicial en Kardex
+                ajuste_inicial = StockAdjustment(
+                    product_id=nuevo_prod.id,
+                    admin_id=current_user.id,
+                    tipo_movimiento='Carga Masiva (Nuevo)',
+                    stock_anterior=0,
+                    stock_nuevo=nuevo_prod.cantidad_stock
+                )
+                db.session.add(ajuste_inicial)
+                productos_creados += 1
+
+        db.session.commit()
+        flash(f'Carga masiva completada: {productos_creados} productos creados y {productos_actualizados} productos actualizados.', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al procesar el archivo Excel: {str(e)}', 'danger')
+
+    return redirect(url_for('inventory_bp.index'))

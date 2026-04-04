@@ -4,6 +4,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold text-brand-black m-0">Inventario Central</h2>
     <div>
+        <!-- Botón Carga Masiva (Excel) -->
+        <button type="button" class="btn btn-outline-success rounded-pill px-4 me-2" data-bs-toggle="modal" data-bs-target="#modalCargaMasiva">
+            <i class="fa-solid fa-file-excel me-1"></i> Carga Masiva (Excel)
+        </button>
         <!-- Botón Nuevo Producto ahora en Azul Turquesa -->
         <a href="/inventory/nuevo" class="btn btn-blue rounded-pill px-4">
             <i class="fa-solid fa-plus me-1"></i> Nuevo Producto
@@ -63,6 +67,42 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal: Carga Masiva Inventario -->
+<div class="modal fade" id="modalCargaMasiva" tabindex="-1" aria-labelledby="modalCargaMasivaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title fw-bold" id="modalCargaMasivaLabel"><i class="fa-solid fa-file-excel me-2"></i>Carga Masiva desde Excel</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('inventory_bp.carga_masiva') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">Carga tus productos masivamente. Si el <strong>SKU</strong> ya existe, se sumará el stock y se actualizarán los precios.</p>
+                    
+                    <div class="alert alert-info border-0 rounded-3 mb-4">
+                        <h6 class="fw-bold mb-1 small"><i class="fa-solid fa-circle-info me-1"></i>Estructura requerida:</h6>
+                        <p class="mb-0 small">nombre, sku, cantidad_stock, precio_costo, precio_minimo, precio_sugerido, observacion.</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-brand-black">Selecciona el archivo (.xlsx)</label>
+                        <input type="file" name="archivo_excel" accept=".xlsx, .xls" class="form-control border-0 bg-light py-2" required>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="#" class="text-success small fw-bold text-decoration-none"><i class="fa-solid fa-download me-1"></i>Descargar Plantilla de Ejemplo</a>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">Iniciar Carga</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
