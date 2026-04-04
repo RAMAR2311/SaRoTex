@@ -102,4 +102,22 @@
         </div>
     </div>
 </div>
+
+<!-- Fila Secundaria: Módulos Estratégicos -->
+<div class="row g-3 mb-4">
+    <!-- 5. Tarjeta: Proveedores (Cuentas por Pagar) -->
+    <div class="col-md-3">
+        <div class="card card-custom h-100 p-4" style="border: 2px solid var(--brand-dark-gold);">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-truck-field fs-1" style="color: var(--brand-dark-gold);"></i>
+            </div>
+            <h5 class="text-brand-black fw-bold">Proveedores</h5>
+            <h2 class="fw-bolder" style="color: var(--brand-dark-gold);">{{ total_proveedores }}</h2>
+            <p class="text-muted small">Cuentas por pagar y entregas de mercancía.</p>
+            <div class="mt-auto pt-3">
+                <a href="{{ url_for('providers_bp.index') }}" class="btn w-100 rounded-pill fw-bold" style="background-color: var(--brand-dark-gold); color: var(--brand-white);"><i class="fa-solid fa-eye me-2"></i> Gestionar</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

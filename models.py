@@ -110,3 +110,40 @@ class Expense(db.Model):
     fecha_gasto = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     usuario = db.relationship('User', backref='gastos', lazy=True)
+
+
+# ===================== MÓDULO DE PROVEEDORES (Cuentas por Pagar) =====================
+
+class Provider(db.Model):
+    __tablename__ = 'providers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(150), nullable=False)
+    telefono = db.Column(db.String(20), nullable=True)
+    empresa = db.Column(db.String(200), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    entregas = db.relationship('ProviderDelivery', backref='proveedor', lazy=True, cascade='all, delete-orphan')
+    pagos = db.relationship('ProviderPayment', backref='proveedor', lazy=True, cascade='all, delete-orphan')
+
+class ProviderDelivery(db.Model):
+    __tablename__ = 'provider_deliveries'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    cantidad_entregada = db.Column(db.Integer, nullable=False)
+    costo_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+    costo_total = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_entrega = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    producto = db.relationship('Product', backref='entregas_proveedor', lazy=True)
+
+class ProviderPayment(db.Model):
+    __tablename__ = 'provider_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    monto_abonado = db.Column(db.Numeric(10, 2), nullable=False)
+    observacion = db.Column(db.String(255), nullable=True)
+    fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
