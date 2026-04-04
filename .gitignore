@@ -1,0 +1,10 @@
+# Archivos de Entorno
+.env
+
+# Archivos de Python Compilados
+__pycache__/
+*.py[cod]
+
+# Base de datos SQLite (ahora obsoleta)
+*.db
+crm_inventory.db

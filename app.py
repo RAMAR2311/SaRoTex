@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -9,6 +10,7 @@ from flask_wtf.csrf import CSRFProtect
 from models import db, User
 
 def create_app():
+    load_dotenv() # Carga las variables de .env
     app = Flask(__name__)
     
     # Configuración mediante variables de entorno (con valores por defecto seguros para desarrollo)
@@ -69,8 +71,8 @@ if __name__ == '__main__':
         from models import db, User
         from werkzeug.security import generate_password_hash
         
-        # Aseguramos que las tablas existan sin romper migraciones
-        db.create_all()
+        # Las tablas ahora son gestionadas por Flask-Migrate con PostgreSQL
+        # db.create_all()
         
         # Crear la carpeta de imágenes si no existe
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
