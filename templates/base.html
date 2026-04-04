@@ -129,82 +129,78 @@
 </head>
 <body>
     <!-- Navbar Saro Tex -->
-    <nav class="navbar navbar-expand-xl navbar-dark bg-dark fixed-top shadow navbar-custom">
-        <div class="container-fluid p-2">
-            <a class="navbar-brand ms-2 fw-bold" href="{{ url_for('admin_bp.dashboard') }}">
+    <nav class="navbar navbar-expand-lg navbar-custom mb-5">
+        <div class="container">
+            <!-- Brand Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-crown me-2" style="color: var(--brand-black);"></i>
                 SaRo Tex Lenceria para tu hogar.
-                <i class="fas fa-bed ms-2 text-warning"></i>
             </a>
-
             {% if current_user.is_authenticated %}
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <!-- Botón Hamburguesa Móvil Oculto Sin Sesión -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="bg-dark p-3 mt-2 rounded-bottom shadow">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.rol == 'admin' %}
+                    <!-- Enlaces Únicos para el Administrador de la Tienda -->
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-muted"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black" href="/inventory"><i class="fa-solid fa-box text-muted"></i> Inventario</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black" href="/sales/nueva"><i class="fa-solid fa-cash-register text-muted"></i> Caja Terminal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black" href="/admin/vendedores"><i class="fa-solid fa-users text-muted"></i> Personal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black" href="/gastos"><i class="fa-solid fa-money-bill-transfer" style="color: var(--brand-charcoal);"></i> Gastos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black" href="/providers"><i class="fa-solid fa-truck-field" style="color: var(--brand-dark-gold);"></i> Proveedores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-gold"></i> Catálogo Físico</a>
+                    </li>
+                    <li class="nav-item border-start ps-3 border-dark border-opacity-25">
+                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator" style="color: var(--brand-dark-gold);"></i> Arqueo de Caja</a>
+                    </li>
+                    {% elif current_user.rol == 'vendedor' %}
+                    <!-- Vistas Estrictamente Operativas (Cajeros) -->
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-muted"></i> Catálogo Rápido</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-gold"></i> Módulo de Caja</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/admin/maneos"><i class="fa-solid fa-handshake" style="color: var(--brand-charcoal);"></i> Maneos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black fw-bold" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success"></i> Gastos</a>
+                    </li>
+                    <li class="nav-item border-start ps-3 border-dark border-opacity-25">
+                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator" style="color: var(--brand-dark-gold);"></i> Arqueo</a>
+                    </li>
+                    {% endif %}
                     
-                    <ul class="navbar-nav w-100 text-center">
-                        <li class="nav-item mb-2 mt-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('sales_bp.procesar_venta') }}">
-                                <i class="fas fa-cash-register me-2 text-success"></i> Ventas
-                            </a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('inventory_bp.index') }}">
-                                <i class="fas fa-boxes me-2 text-warning"></i> Inventario
-                            </a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('arqueo_bp.nuevo') }}">
-                                <i class="fas fa-coins me-2 text-primary"></i> Arqueo
-                            </a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('gastos_bp.index') }}">
-                                <i class="fas fa-file-invoice-dollar me-2 text-danger"></i> Gastos
-                            </a>
-                        </li>
-
-                        <hr class="text-light">
-
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('providers_bp.index') }}">
-                                <i class="fas fa-truck-loading me-2 text-info"></i> Proveedores
-                            </a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('admin_bp.vendedores') }}">
-                                <i class="fas fa-users me-2 text-secondary"></i> Personal
-                            </a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('admin_bp.maneos') }}">
-                                <i class="fas fa-exchange-alt me-2 text-light"></i> Maneos
-                            </a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="btn btn-outline-light w-100 text-start" href="{{ url_for('admin_bp.dashboard') }}">
-                                <i class="fas fa-user-shield me-2 text-warning"></i> Admin Panel
-                            </a>
-                        </li>
-
-                        <hr class="text-light">
-
-                        <li class="nav-item mt-3 mb-2">
-                            <a class="btn btn-danger w-100 text-center fw-bold" href="{{ url_for('auth_bp.logout') }}">
-                                <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- Interfaz de Desconexión / Fin de Turno -->
+                    <li class="nav-item ms-lg-3">
+                        <!-- En rojo encendido para evitar cierres de sesión accidentales -->
+                        <a class="nav-link fw-bold text-danger" href="{{ url_for('auth_bp.logout') }}"><i class="fa-solid fa-sign-out-alt"></i> Salir</a>
+                    </li>
+                </ul>
             </div>
             {% endif %}
         </div>
     </nav>
 
     <!-- App Container -->
-    <main class="container mb-5 mt-5 pt-5">
+    <main class="container mb-5">
         <!-- Renderizado de Flash Messages de Flask -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
