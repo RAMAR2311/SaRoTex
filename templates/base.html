@@ -130,22 +130,27 @@
 <body>
     <!-- Navbar Saro Tex -->
     <nav class="navbar navbar-light navbar-custom mb-5 shadow-sm">
-        <div class="container">
-            <!-- Brand Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+        <!-- position-relative para poder anclar el menu a la izquierda sin romper el centrado -->
+        <div class="container position-relative d-flex justify-content-center align-items-center">
+            
+            {% if current_user.is_authenticated %}
+            <!-- Botón Toggler para Menú Hamburguesa a la IZQUIERDA -->
+            <button class="navbar-toggler border-0 shadow-none bg-light position-absolute start-0 ms-2 ms-md-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            {% endif %}
+
+            <!-- Brand Logo CENTRADO -->
+            <a class="navbar-brand d-flex align-items-center m-0" href="{{ url_for('index') }}">
                 <i class="fa-solid fa-crown me-2" style="color: var(--brand-black);"></i>
                 SaRo Tex Lenceria para tu hogar.
             </a>
 
             {% if current_user.is_authenticated %}
-            <!-- Botón Toggler para Menú Hamburguesa -->
-            <button class="navbar-toggler border-0 shadow-none bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- Contenedor Colapsable -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+            <!-- Contenedor Colapsable (La lista que se despliega) -->
+            <!-- w-100 para que ocupe todo el ancho debajo de la barra -->
+            <div class="collapse navbar-collapse w-100 mt-3" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-auto text-start px-3 px-md-0">
                     {% if current_user.rol == 'admin' %}
                     <!-- Enlaces Administrativos -->
                     <li class="nav-item">
