@@ -134,38 +134,65 @@ def maneos_facturar(id):
         flash('Este maneo ya fue resuelto.', 'warning')
         return redirect(url_for('admin_bp.maneos'))
     
+    cantidad_vendida = int(request.form.get('cantidad_vendida', 0))
     precio_venta = float(request.form.get('precio_venta', maneo.producto.precio_sugerido))
+    metodo_pago = request.form.get('metodo_pago', 'efectivo')
 
-    precio_limite = maneo.producto.precio_costo if current_user.rol == 'admin' else maneo.producto.precio_minimo
-
-    if float(precio_venta) < float(precio_limite):
-        flash(f'Operación rechazada: El precio ingresado (${precio_venta}) es menor al límite autorizado para tu perfil de usuario (${precio_limite}).', 'danger')
+    # Validación: la cantidad vendida no puede superar lo prestado
+    if cantidad_vendida < 0 or cantidad_vendida > maneo.cantidad:
+        flash(f'La cantidad vendida debe estar entre 0 y {maneo.cantidad}.', 'danger')
         return redirect(url_for('admin_bp.maneos'))
 
+    # Validación de precio mínimo según rol
+    precio_limite = maneo.producto.precio_costo if current_user.rol == 'admin' else maneo.producto.precio_minimo
+    if cantidad_vendida > 0 and float(precio_venta) < float(precio_limite):
+        flash(f'Operación rechazada: El precio ingresado (${precio_venta}) es menor al límite autorizado (${precio_limite}).', 'danger')
+        return redirect(url_for('admin_bp.maneos'))
+
+    # Cálculo de devolución automática
+    cantidad_devuelta = maneo.cantidad - cantidad_vendida
+
     try:
+        # 1. Si se vendió algo, generar la venta en el sistema
+        if cantidad_vendida > 0:
+            monto_total = round(precio_venta * cantidad_vendida, 2)
+            nueva_venta = Sale(
+                vendedor_id=current_user.id,
+                monto_total=monto_total,
+                metodo_pago=metodo_pago
+            )
+            db.session.add(nueva_venta)
+            db.session.flush()
+            
+            detalle = SaleDetail(
+                sale_id=nueva_venta.id,
+                product_id=maneo.product_id,
+                cantidad_vendida=cantidad_vendida,
+                precio_venta_final=precio_venta
+            )
+            db.session.add(detalle)
+
+        # 2. Si hay unidades no vendidas, devolverlas al inventario
+        if cantidad_devuelta > 0:
+            stock_anterior = maneo.producto.cantidad_stock
+            maneo.producto.cantidad_stock += cantidad_devuelta
+
+            ajuste = StockAdjustment(
+                product_id=maneo.product_id,
+                admin_id=current_user.id,
+                tipo_movimiento=f'Devolución parcial Maneo ({maneo.local_vecino})',
+                stock_anterior=stock_anterior,
+                stock_nuevo=maneo.producto.cantidad_stock
+            )
+            db.session.add(ajuste)
+
+        # 3. Cerrar el maneo
         maneo.estado = 'FACTURADO'
         maneo.fecha_resolucion = obtener_hora_bogota()
 
-        # Registrar la venta real del Maneo
-        nueva_venta = Sale(
-            vendedor_id=current_user.id,
-            monto_total=(precio_venta * maneo.cantidad),
-            metodo_pago='efectivo' # Por defecto en efectivo a la caja, luego ajustamos si piden otras formas
-        )
-        db.session.add(nueva_venta)
-        db.session.flush() # forzar DB a darnos un ID para nueva_venta
-        
-        detalle = SaleDetail(
-            sale_id=nueva_venta.id,
-            product_id=maneo.product_id,
-            cantidad_vendida=maneo.cantidad,
-            precio_venta_final=precio_venta
-        )
-        db.session.add(detalle)
-        
         db.session.commit()
-        flash(f'Maneo facturado. Se registró la venta de ${precio_venta * maneo.cantidad} en la caja.', 'success')
-    except Exception as e:
+        flash(f'Maneo facturado exitosamente. {cantidad_vendida} unidades vendidas y {cantidad_devuelta} unidades devueltas al inventario.', 'success')
+    except Exception:
         db.session.rollback()
         flash('Error al facturar el maneo.', 'danger')
 
