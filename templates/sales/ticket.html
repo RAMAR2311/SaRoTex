@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket de Compra #{{ venta.id }} - Saro Tex</title>
+    <title>Ticket de Compra #{{ venta.id }} - SaRo Tex</title>
     <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 80mm) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -128,8 +128,8 @@
 
 <div class="ticket">
     <div class="header">
-        <h1 class="logo">Saro Tex</h1>
-        <p class="info" style="margin-bottom: 5px;">Lencería & Hogar</p>
+        <h1 class="logo">SaRo Tex</h1>
+        <p class="info" style="margin-bottom: 5px;">Lenceria para tu hogar.</p>
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
