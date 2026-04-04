@@ -64,24 +64,35 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4">NOMBRE DE EMPLEADO</th>
-                            <th>EMAIL (CREDENCIAL DE ACCESO)</th>
-                            <th>NÚMERO TELEFÓNICO</th>
-                            <th class="text-center pe-4">STATUS</th>
+                            <th>EMAIL (CREDENCIAL)</th>
+                            <th>TELÉFONO</th>
+                            <th class="text-center">STATUS</th>
+                            <th class="text-center pe-4">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for vendedor in vendedores %}
                         <tr>
                             <td class="fw-bold text-brand-black ps-4">{{ vendedor.nombre }}</td>
-                            <td class="text-muted">{{ vendedor.email }}</td>
-                            <td class="text-muted">{{ vendedor.telefono or '-- No registrado --' }}</td>
+                            <td class="text-muted small">{{ vendedor.email }}</td>
+                            <td class="text-muted small">{{ vendedor.telefono or '—' }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">Activo</span>
+                            </td>
                             <td class="text-center pe-4">
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 w-100">Activo</span>
+                                <button type="button" 
+                                        class="btn btn-sm btn-pink rounded-pill fw-bold px-3 text-dark btn-pagar"
+                                        data-id="{{ vendedor.id }}"
+                                        data-nombre="{{ vendedor.nombre }}"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalPago">
+                                    <i class="fa-solid fa-money-bill-wave me-1"></i> Realizar Pago
+                                </button>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
+                            <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-users-slash fs-1 mb-3 opacity-25"></i>
                                 <p class="mb-0">Aún no has dado de alta a ningún Vendedor/Cajero.</p>
                             </td>
@@ -93,4 +104,50 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Realizar Pago al Personal -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="fw-bold text-brand-black">
+            <i class="fa-solid fa-money-bill-wave me-2" style="color: var(--brand-gold);"></i>Pago a: <span id="modalPagoNombre" class="text-brand-gold"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin_bp.pagar_personal') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="user_id" id="modalPagoUserId">
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Valor del Pago ($) *</label>
+                <input type="number" name="monto" class="form-control form-control-lg" min="0.01" step="0.01" placeholder="Ej: 150000.00" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Observación</label>
+                <input type="text" name="observacion" class="form-control" placeholder="Ej: Pago semana 1, Adelanto, Bonificación...">
+            </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-pink rounded-pill px-4 fw-bold text-dark">
+              <i class="fa-solid fa-file-invoice-dollar me-1"></i> Confirmar y Generar Comprobante
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- JS: Inyectar datos dinámicos al modal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-pagar').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.getElementById('modalPagoUserId').value = this.dataset.id;
+            document.getElementById('modalPagoNombre').textContent = this.dataset.nombre;
+        });
+    });
+});
+</script>
 {% endblock %}

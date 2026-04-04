@@ -23,6 +23,7 @@ class User(UserMixin, db.Model):
     ventas = db.relationship('Sale', backref='vendedor', lazy=True)
     ajustes_stock = db.relationship('StockAdjustment', backref='admin', lazy=True)
     arqueos = db.relationship('ArqueoCaja', backref='cajero', lazy=True)
+    pagos_recibidos = db.relationship('StaffPayment', backref='receptor', lazy=True)
 
 class Product(db.Model):
     __tablename__ = 'products'
@@ -145,5 +146,17 @@ class ProviderPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
     monto_abonado = db.Column(db.Numeric(10, 2), nullable=False)
+    observacion = db.Column(db.String(255), nullable=True)
+    fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+
+# ===================== MÓDULO DE PAGOS AL PERSONAL =====================
+
+class StaffPayment(db.Model):
+    __tablename__ = 'staff_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    monto = db.Column(db.Numeric(10, 2), nullable=False)
     observacion = db.Column(db.String(255), nullable=True)
     fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)

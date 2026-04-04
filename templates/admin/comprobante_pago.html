@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante de Pago #{{ pago.id }} - Saro Tex</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #555555;
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            font-family: 'Roboto Mono', monospace, sans-serif;
+        }
+
+        .comprobante {
+            background-color: #FFFFFF;
+            width: 100%;
+            max-width: 420px;
+            padding: 30px 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            color: #010100;
+            box-sizing: border-box;
+        }
+
+        /* ========== CABECERA ========== */
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #010100;
+            padding-bottom: 18px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+            letter-spacing: -1.5px;
+        }
+
+        .subtitulo {
+            font-size: 0.85rem;
+            margin: 3px 0;
+            line-height: 1.5;
+        }
+
+        .titulo-doc {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 15px;
+            padding: 8px 0;
+            background-color: #C7A76B;
+            border-radius: 4px;
+        }
+
+        /* ========== SECCIÓN DE DATOS ========== */
+        .seccion {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .seccion-titulo {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .dato-fila {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.88rem;
+            padding: 4px 0;
+        }
+
+        .dato-label {
+            color: #666;
+            font-weight: 400;
+        }
+
+        .dato-valor {
+            font-weight: 700;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        /* ========== MONTO DESTACADO ========== */
+        .monto-box {
+            background-color: #C7A76B;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #010100;
+            margin-bottom: 20px;
+        }
+
+        .monto-box .dato-fila {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* ========== OBSERVACIÓN ========== */
+        .observacion-box {
+            background-color: #f9f9f9;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            min-height: 40px;
+            border: 1px solid #eee;
+        }
+
+        .observacion-box .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #888;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        /* ========== FIRMAS ========== */
+        .firmas {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+        }
+
+        .firma-bloque {
+            flex: 1;
+            text-align: center;
+        }
+
+        .firma-linea {
+            border-top: 1px solid #010100;
+            padding-top: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .firma-nombre {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 3px;
+        }
+
+        /* ========== PIE DE PÁGINA ========== */
+        .footer {
+            text-align: center;
+            font-size: 0.78rem;
+            color: #999;
+            border-top: 2px dashed #010100;
+            padding-top: 15px;
+            margin-top: 20px;
+        }
+
+        .footer p {
+            margin: 3px 0;
+        }
+
+        /* ========== BOTONES (Solo pantalla) ========== */
+        .acciones {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn-accion {
+            flex: 1;
+            padding: 14px;
+            font-size: 1rem;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+            text-align: center;
+            text-decoration: none;
+            border: 2px solid #010100;
+        }
+
+        .btn-imprimir {
+            background-color: #010100;
+            color: #FFFFFF;
+        }
+
+        .btn-imprimir:hover {
+            background-color: #FFFFFF;
+            color: #010100;
+        }
+
+        .btn-volver {
+            background-color: #FFFFFF;
+            color: #010100;
+        }
+
+        .btn-volver:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* ========== MEDIA PRINT ========== */
+        @media print {
+            body {
+                background-color: #FFFFFF;
+                padding: 0;
+                display: block;
+            }
+            .comprobante {
+                box-shadow: none;
+                max-width: 100%;
+                padding: 0;
+                margin: 0 auto;
+                width: 80mm;
+                border: none;
+            }
+            .acciones {
+                display: none !important;
+            }
+            .monto-box {
+                background-color: transparent !important;
+                border: 1px solid #010100 !important;
+            }
+            .titulo-doc {
+                background-color: transparent !important;
+                border: 1px solid #010100;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="comprobante">
+    <!-- Cabecera -->
+    <div class="header">
+        <h1 class="logo">Saro Tex</h1>
+        <p class="subtitulo">Lencería & Hogar</p>
+        <span class="titulo-doc">Comprobante de Pago a Personal</span>
+    </div>
+
+    <!-- Datos del Receptor -->
+    <div class="seccion">
+        <p class="seccion-titulo"><i class="fa-solid fa-user"></i> Datos del Receptor</p>
+        <div class="dato-fila">
+            <span class="dato-label">Nombre:</span>
+            <span class="dato-valor">{{ pago.receptor.nombre }}</span>
+        </div>
+        <div class="dato-fila">
+            <span class="dato-label">Teléfono:</span>
+            <span class="dato-valor">{{ pago.receptor.telefono or 'No registrado' }}</span>
+        </div>
+    </div>
+
+    <!-- Detalles del Pago -->
+    <div class="seccion">
+        <p class="seccion-titulo"><i class="fa-solid fa-calendar"></i> Detalles del Pago</p>
+        <div class="dato-fila">
+            <span class="dato-label">Folio:</span>
+            <span class="dato-valor">#{{ pago.id }}</span>
+        </div>
+        <div class="dato-fila">
+            <span class="dato-label">Fecha:</span>
+            <span class="dato-valor">{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+    </div>
+
+    <!-- Monto Destacado -->
+    <div class="monto-box">
+        <div class="dato-fila">
+            <span>VALOR PAGADO:</span>
+            <span>${{ "%.2f"|format(pago.monto) }}</span>
+        </div>
+    </div>
+
+    <!-- Observación -->
+    <div class="observacion-box">
+        <p class="label">Observación / Concepto</p>
+        <span>{{ pago.observacion or 'Sin observaciones registradas.' }}</span>
+    </div>
+
+    <!-- Firmas -->
+    <div class="firmas">
+        <div class="firma-bloque">
+            <p class="firma-linea">Recibí Conforme</p>
+            <p class="firma-nombre">{{ pago.receptor.nombre }}</p>
+        </div>
+        <div class="firma-bloque">
+            <p class="firma-linea">Autoriza</p>
+            <p class="firma-nombre">Administración</p>
+        </div>
+    </div>
+
+    <!-- Pie -->
+    <div class="footer">
+        <p>Documento generado automáticamente</p>
+        <p>SaRoTex CRM · {{ pago.fecha_pago.strftime('%Y') }}</p>
+    </div>
+
+    <!-- Botones (desaparecen al imprimir) -->
+    <div class="acciones">
+        <button class="btn-accion btn-imprimir" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> IMPRIMIR
+        </button>
+        <a href="{{ url_for('admin_bp.vendedores') }}" class="btn-accion btn-volver">
+            <i class="fa-solid fa-arrow-left"></i> VOLVER
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

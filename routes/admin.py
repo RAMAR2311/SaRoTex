@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 
-from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, obtener_hora_bogota
+from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, StaffPayment, obtener_hora_bogota
 from decorators import admin_required
 
 admin_bp = Blueprint('admin_bp', __name__)
@@ -276,3 +276,48 @@ def balance_financiero():
         fecha_generacion=hoy.strftime('%Y-%m-%d %H:%M'),
         datos=datos_financieros
     )
+
+
+# ===================== PAGOS AL PERSONAL =====================
+
+@admin_bp.route('/personal/pagar', methods=['POST'])
+@login_required
+@admin_required
+def pagar_personal():
+    """Registra un pago a un miembro del personal."""
+    user_id = request.form.get('user_id', type=int)
+    monto = float(request.form.get('monto', 0))
+    observacion = request.form.get('observacion', '').strip()
+
+    if not user_id or monto <= 0:
+        flash('Debes seleccionar un empleado e ingresar un monto válido.', 'danger')
+        return redirect(url_for('admin_bp.vendedores'))
+
+    receptor = User.query.get(user_id)
+    if not receptor:
+        flash('El empleado seleccionado no existe.', 'danger')
+        return redirect(url_for('admin_bp.vendedores'))
+
+    try:
+        pago = StaffPayment(
+            user_id=receptor.id,
+            monto=monto,
+            observacion=observacion or None
+        )
+        db.session.add(pago)
+        db.session.commit()
+        flash(f'Pago de ${monto:,.2f} registrado para "{receptor.nombre}".', 'success')
+        return redirect(url_for('admin_bp.comprobante_pago', id=pago.id))
+    except Exception:
+        db.session.rollback()
+        flash('Error al registrar el pago en la base de datos.', 'danger')
+        return redirect(url_for('admin_bp.vendedores'))
+
+
+@admin_bp.route('/personal/comprobante/<int:id>')
+@login_required
+@admin_required
+def comprobante_pago(id):
+    """Muestra el comprobante imprimible de un pago al personal."""
+    pago = StaffPayment.query.get_or_404(id)
+    return render_template('admin/comprobante_pago.html', pago=pago)
