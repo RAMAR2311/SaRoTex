@@ -67,13 +67,27 @@ def cuenta(id):
         reverse=True
     )
 
+    # Sort lists safely for the two tables
+    facturas_ordenadas = sorted(
+        proveedor.invoices,
+        key=lambda f: f.fecha_factura or datetime.min,
+        reverse=True
+    )
+    pagos_ordenados = sorted(
+        proveedor.pagos,
+        key=lambda p: p.fecha_pago or datetime.min,
+        reverse=True
+    )
+
     return render_template(
         'providers/cuenta.html',
         proveedor=proveedor,
         total_facturas=float(total_facturas),
         total_abonos=float(total_abonos),
         saldo_pendiente=saldo_pendiente,
-        historial=historial
+        historial=historial,
+        facturas_ordenadas=facturas_ordenadas,
+        pagos_ordenados=pagos_ordenados
     )
 
 
