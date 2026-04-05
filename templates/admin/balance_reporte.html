@@ -67,6 +67,14 @@
                         <td class="text-danger text-end">-${{ "%.2f"|format(datos.gastos_operacionales) }}</td>
                     </tr>
                     <tr>
+                        <td>Cargos a Nómina / Personal</td>
+                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.total_pagos_nomina) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Abonos Realizados a Proveedores</td>
+                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.total_pagos_proveedores) }}</td>
+                    </tr>
+                    <tr>
                         <td>Costos Indirectos Permanentes</td>
                         <td class="text-danger text-end">-${{ "%.2f"|format(datos.costos_indirectos) }}</td>
                     </tr>

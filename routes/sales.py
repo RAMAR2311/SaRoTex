@@ -22,15 +22,29 @@ def procesar_venta():
     data = request.get_json()
     items = data.get('items', [])
     metodo_pago = data.get('metodo_pago', 'efectivo')
-    
+    fecha_venta_str = data.get('fecha_venta')
+
     if not items:
         return jsonify({'error': 'No se enviaron productos para la venta'}), 400
 
     try:
+        # Lógica de fecha retroactiva
+        fecha_final = obtener_hora_bogota()
+        if fecha_venta_str:
+            try:
+                # Convertir string 'YYYY-MM-DD' a datetime
+                fecha_final = datetime.strptime(fecha_venta_str, '%Y-%m-%d')
+                # Si se desea conservar la hora actual para una fecha anterior, se puede hacer, 
+                # pero usualmente se prefiere el inicio del día o la hora actual.
+                # Aquí simplemente tomamos la fecha elegida.
+            except ValueError:
+                pass # Si el formato falla, usamos hora bogota por defecto
+
         nueva_venta = Sale(
             vendedor_id=current_user.id,
             monto_total=Decimal('0.00'),
-            metodo_pago=metodo_pago
+            metodo_pago=metodo_pago,
+            fecha_venta=fecha_final
         )
         db.session.add(nueva_venta)
         db.session.flush()

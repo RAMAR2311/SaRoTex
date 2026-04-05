@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 
-from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, StaffPayment, obtener_hora_bogota
+from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, StaffPayment, ProviderPayment, obtener_hora_bogota
 from decorators import admin_required
 
 admin_bp = Blueprint('admin_bp', __name__)
@@ -277,13 +277,21 @@ def balance_financiero():
     
     costos_directos = sum((detalle.SaleDetail.cantidad_vendida * (detalle.Product.precio_costo or 0)) for detalle in detalles_vendidos)
 
-    # 3. Costos Indirectos y Gastos Operativos
+    # 3. Costos Indirectos y Gastos Operativos (Gastos Generales)
     gastos_query = Expense.query.filter(Expense.fecha_gasto >= inicio_dt, Expense.fecha_gasto < fin_dt_query).all()
     
     costos_indirectos = sum(g.monto for g in gastos_query if g.tipo_gasto == 'Costo Indirecto')
     gastos_operacionales = sum(g.monto for g in gastos_query if g.tipo_gasto == 'Gasto Diario')
+
+    # 4. Pagos a Proveedores (Abonos realizados en el periodo)
+    pagos_prov_query = ProviderPayment.query.filter(ProviderPayment.fecha_pago >= inicio_dt, ProviderPayment.fecha_pago < fin_dt_query).all()
+    total_pagos_proveedores = sum(p.monto_abonado for p in pagos_prov_query) or 0
+
+    # 5. Pagos a Personal (Nómina)
+    pagos_nomina_query = StaffPayment.query.filter(StaffPayment.fecha_pago >= inicio_dt, StaffPayment.fecha_pago < fin_dt_query).all()
+    total_pagos_nomina = sum(p.monto for p in pagos_nomina_query) or 0
     
-    total_salidas = float(costos_directos) + float(costos_indirectos) + float(gastos_operacionales)
+    total_salidas = float(costos_directos) + float(costos_indirectos) + float(gastos_operacionales) + float(total_pagos_proveedores) + float(total_pagos_nomina)
     balance_neto = float(total_ingresos) - total_salidas
 
     datos_financieros = {
@@ -294,6 +302,8 @@ def balance_financiero():
         'costos_directos': float(costos_directos),
         'costos_indirectos': float(costos_indirectos),
         'gastos_operacionales': float(gastos_operacionales),
+        'total_pagos_proveedores': float(total_pagos_proveedores),
+        'total_pagos_nomina': float(total_pagos_nomina),
         'total_salidas': total_salidas,
         'balance_neto': balance_neto
     }

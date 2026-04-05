@@ -69,6 +69,15 @@
 
             <hr class="mb-4">
 
+            {% if current_user.rol == 'admin' %}
+            <!-- Fecha de Venta (Opcional - Retroactiva) -->
+            <div class="mb-4">
+                <label for="fecha-venta" class="form-label fw-bold text-brand-black small text-uppercase">Fecha de Venta (Opcional)</label>
+                <input type="date" id="fecha-venta" class="form-control form-control-lg border-0 shadow-sm bg-light" style="cursor: pointer;">
+                <small class="text-muted" style="font-size: 0.75rem;">Deja en blanco para usar la fecha actual.</small>
+            </div>
+            {% endif %}
+
             <!-- Método de Pago Seleccionable -->
             <div class="mb-4">
                 <label for="metodo-pago" class="form-label fw-bold text-brand-black small text-uppercase">Método de Pago</label>
@@ -269,6 +278,8 @@
         }
 
         const metodoPago = document.getElementById('metodo-pago').value;
+        const fechaVentaEl = document.getElementById('fecha-venta');
+        const fechaVenta = fechaVentaEl ? fechaVentaEl.value : '';
 
         // Estructura de Diccionario aceptada estrictamente por el Backend que creamos hace un momento (routes/sales.py)
         const payload = {
@@ -277,7 +288,8 @@
                 cantidad: item.cantidad,
                 precio_final: item.precio_final
             })),
-            metodo_pago: metodoPago
+            metodo_pago: metodoPago,
+            fecha_venta: fechaVenta // La mandamos opcional
         };
 
         try {
