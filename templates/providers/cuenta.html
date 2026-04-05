@@ -13,44 +13,43 @@
     </div>
 </div>
 
-<!-- Tarjetas KPI: Entregas, Abonos, Saldo -->
+<!-- Tarjetas KPI: Facturas, Abonos, Saldo -->
 <div class="row g-3 mb-4">
     <div class="col-md-4">
-        <div class="card card-custom p-4 h-100">
-            <p class="text-muted small fw-bold text-uppercase mb-1"><i class="fa-solid fa-boxes-stacked me-1"></i> Total Mercancía Entregada</p>
-            <h3 class="fw-bolder text-brand-black">${{ "%.2f"|format(total_entregas) }}</h3>
+        <div class="card card-custom p-4 h-100 shadow-sm border-0 rounded-4">
+            <p class="text-muted small fw-bold text-uppercase mb-1"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Total Facturado</p>
+            <h3 class="fw-bolder text-brand-black">${{ "{:,.2f}".format(total_facturas|default(0)) }}</h3>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card card-custom p-4 h-100">
+        <div class="card card-custom p-4 h-100 shadow-sm border-0 rounded-4">
             <p class="text-muted small fw-bold text-uppercase mb-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Total Abonos Realizados</p>
-            <h3 class="fw-bolder" style="color: #16a34a;">${{ "%.2f"|format(total_abonos) }}</h3>
+            <h3 class="fw-bolder" style="color: #16a34a;">${{ "{:,.2f}".format(total_abonos|default(0)) }}</h3>
         </div>
     </div>
     <div class="col-md-4">
-        {% if saldo_pendiente > 0 %}
-        <div class="card p-4 h-100 border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-left: 4px solid #dc2626 !important;">
-            <p class="small fw-bold text-uppercase mb-1" style="color: #991b1b;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Saldo Pendiente</p>
-            <h3 class="fw-bolder" style="color: #dc2626;">${{ "%.2f"|format(saldo_pendiente) }}</h3>
+        <div class="card p-4 h-100 border-0 shadow-sm rounded-4" 
+             style="background: {{ 'linear-gradient(135deg, #fef2f2, #fee2e2)' if saldo_pendiente > 0 else 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}; 
+                    border-left: 4px solid {{ '#dc2626' if saldo_pendiente > 0 else '#16a34a' }} !important;">
+            <p class="small fw-bold text-uppercase mb-1" style="color: {{ '#991b1b' if saldo_pendiente > 0 else '#166534' }};">
+                <i class="fa-solid {{ 'fa-triangle-exclamation' if saldo_pendiente > 0 else 'fa-circle-check' }} me-1"></i> Saldo Pendiente
+            </p>
+            <h3 class="fw-bolder" style="color: {{ '#dc2626' if saldo_pendiente > 0 else '#16a34a' }};">
+                ${{ "{:,.2f}".format(saldo_pendiente|default(0)) }}
+            </h3>
         </div>
-        {% else %}
-        <div class="card p-4 h-100 border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-left: 4px solid #16a34a !important;">
-            <p class="small fw-bold text-uppercase mb-1" style="color: #166534;"><i class="fa-solid fa-circle-check me-1"></i> Saldo Pendiente</p>
-            <h3 class="fw-bolder" style="color: #16a34a;">${{ "%.2f"|format(saldo_pendiente) }}</h3>
-        </div>
-        {% endif %}
     </div>
 </div>
 
-<!-- Layout 2 Columnas: Entregas | Abonos -->
+<!-- Layout 2 Columnas: Facturas | Abonos -->
 <div class="row g-4">
 
-    <!-- ========== COLUMNA IZQUIERDA: Mercancía Entregada ========== -->
+    <!-- ========== COLUMNA IZQUIERDA: Facturas Registradas ========== -->
     <div class="col-lg-7">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-dolly me-2" style="color: var(--brand-gold);"></i>Mercancía Entregada</h5>
-            <button class="btn btn-pink btn-sm rounded-pill fw-bold px-3 text-dark" data-bs-toggle="modal" data-bs-target="#modalEntrega">
-                <i class="fa-solid fa-plus me-1"></i> Registrar Mercancía
+            <h5 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-file-lines me-2" style="color: var(--brand-gold);"></i>Facturas Registradas</h5>
+            <button class="btn btn-pink btn-sm rounded-pill fw-bold px-3 text-dark" data-bs-toggle="modal" data-bs-target="#modalFactura">
+                <i class="fa-solid fa-plus me-1"></i> Ingresar Factura
             </button>
         </div>
         <div class="table-responsive">
@@ -58,26 +57,24 @@
                 <thead>
                     <tr>
                         <th>Fecha</th>
-                        <th>Producto</th>
-                        <th class="text-center">Cant.</th>
-                        <th class="text-end">C. Unitario</th>
-                        <th class="text-end">Costo Total</th>
+                        <th>N° Factura</th>
+                        <th>Descripción</th>
+                        <th class="text-end">Monto</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for e in proveedor.entregas|sort(attribute='fecha_entrega', reverse=true) %}
+                    {% for f in proveedor.invoices|sort(attribute='fecha_factura', reverse=true) %}
                     <tr>
-                        <td class="text-muted small">{{ e.fecha_entrega.strftime('%d/%m/%Y') if e.fecha_entrega else '—' }}</td>
-                        <td class="fw-bold">{{ e.producto.nombre }}</td>
-                        <td class="text-center">{{ e.cantidad_entregada }}</td>
-                        <td class="text-end">${{ "%.2f"|format(e.costo_unitario) }}</td>
-                        <td class="text-end fw-bold">${{ "%.2f"|format(e.costo_total) }}</td>
+                        <td class="text-muted small">{{ f.fecha_factura.strftime('%d/%m/%Y') if f.fecha_factura else '—' }}</td>
+                        <td class="fw-bold text-brand-black">{{ f.numero_factura or '—' }}</td>
+                        <td class="small">{{ f.descripcion or '—' }}</td>
+                        <td class="text-end fw-bold">${{ "{:,.2f}".format(f.monto_total) }}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            <i class="fa-solid fa-box-open d-block fs-3 mb-2" style="color: var(--brand-champagne);"></i>
-                            Sin entregas registradas.
+                        <td colspan="4" class="text-center text-muted py-4">
+                            <i class="fa-solid fa-file-circle-xmark d-block fs-3 mb-2" style="color: var(--brand-champagne);"></i>
+                            Sin facturas registradas.
                         </td>
                     </tr>
                     {% endfor %}
@@ -107,7 +104,7 @@
                     {% for p in proveedor.pagos|sort(attribute='fecha_pago', reverse=true) %}
                     <tr>
                         <td class="text-muted small">{{ p.fecha_pago.strftime('%d/%m/%Y') if p.fecha_pago else '—' }}</td>
-                        <td class="text-end fw-bold" style="color: #16a34a;">${{ "%.2f"|format(p.monto_abonado) }}</td>
+                        <td class="text-end fw-bold" style="color: #16a34a;">${{ "{:,.2f}".format(p.monto_abonado) }}</td>
                         <td class="small">{{ p.observacion or '—' }}</td>
                     </tr>
                     {% else %}
@@ -126,40 +123,33 @@
 
 <!-- ==================== MODALES ==================== -->
 
-<!-- Modal: Registrar Mercancía -->
-<div class="modal fade" id="modalEntrega" tabindex="-1" aria-hidden="true">
+<!-- Modal: Registrar Factura -->
+<div class="modal fade" id="modalFactura" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4">
       <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-dolly me-2" style="color: var(--brand-gold);"></i>Registrar Entrega de Mercancía</h5>
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice me-2" style="color: var(--brand-gold);"></i>Registrar Factura</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form action="{{ url_for('providers_bp.registrar_entrega', id=proveedor.id) }}" method="POST">
+      <form action="{{ url_for('providers_bp.registrar_factura', id=proveedor.id) }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-body">
             <div class="mb-3">
-                <label class="form-label fw-bold text-brand-black small">Producto del Inventario *</label>
-                <select name="product_id" class="form-select" required>
-                    <option value="" disabled selected>— Seleccionar producto —</option>
-                    {% for prod in productos %}
-                    <option value="{{ prod.id }}">{{ prod.nombre }} (SKU: {{ prod.sku }})</option>
-                    {% endfor %}
-                </select>
+                <label class="form-label fw-bold text-brand-black small">Monto Total de Factura ($) *</label>
+                <input type="number" name="monto_total" class="form-control" min="0.01" step="0.01" placeholder="Ej: 1250000" required>
             </div>
-            <div class="row g-3">
-                <div class="col-6">
-                    <label class="form-label fw-bold text-brand-black small">Cantidad *</label>
-                    <input type="number" name="cantidad_entregada" class="form-control" min="1" placeholder="Ej: 50" required>
-                </div>
-                <div class="col-6">
-                    <label class="form-label fw-bold text-brand-black small">Costo Unitario ($) *</label>
-                    <input type="number" name="costo_unitario" class="form-control" min="0.01" step="0.01" placeholder="Ej: 12500.00" required>
-                </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Número de Factura (Opcional)</label>
+                <input type="text" name="numero_factura" class="form-control" placeholder="Ej: FAC-1234">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Descripción / Observación</label>
+                <textarea name="descripcion" class="form-control" rows="2" placeholder="Ej: Mercancía del mes de Abril, Lencería..."></textarea>
             </div>
         </div>
         <div class="modal-footer border-top-0 pt-0">
           <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-pink rounded-pill px-4 fw-bold text-dark"><i class="fa-solid fa-check me-1"></i> Guardar Entrega</button>
+          <button type="submit" class="btn btn-pink rounded-pill px-4 fw-bold text-dark"><i class="fa-solid fa-check me-1"></i> Guardar Factura</button>
         </div>
       </form>
     </div>
@@ -183,7 +173,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold text-brand-black small">Observación</label>
-                <input type="text" name="observacion" class="form-control" placeholder="Ej: Pago parcial en efectivo, consignación Bancolombia...">
+                <input type="text" name="observacion" class="form-control" placeholder="Ej: Pago parcial en efectivo...">
             </div>
         </div>
         <div class="modal-footer border-top-0 pt-0">
@@ -194,5 +184,4 @@
     </div>
   </div>
 </div>
-
 {% endblock %}

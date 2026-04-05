@@ -126,11 +126,22 @@ class Provider(db.Model):
     empresa = db.Column(db.String(200), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
-    entregas = db.relationship('ProviderDelivery', backref='proveedor', lazy=True, cascade='all, delete-orphan')
+    invoices = db.relationship('ProviderInvoice', backref='proveedor', lazy=True, cascade='all, delete-orphan')
     pagos = db.relationship('ProviderPayment', backref='proveedor', lazy=True, cascade='all, delete-orphan')
+
+class ProviderInvoice(db.Model):
+    __tablename__ = 'provider_invoices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    numero_factura = db.Column(db.String(100), nullable=True) # Opcional
+    monto_total = db.Column(db.Numeric(10, 2), nullable=False)
+    descripcion = db.Column(db.String(255), nullable=True)
+    fecha_factura = db.Column(db.DateTime, default=obtener_hora_bogota)
 
 class ProviderDelivery(db.Model):
     __tablename__ = 'provider_deliveries'
+    # ... conservado por ahora por histórico ...
 
     id = db.Column(db.Integer, primary_key=True)
     provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)

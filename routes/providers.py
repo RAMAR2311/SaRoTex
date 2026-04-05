@@ -1,6 +1,7 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Provider, ProviderDelivery, ProviderPayment, Product, StockAdjustment
+from models import db, Provider, ProviderInvoice, ProviderPayment, Product, StockAdjustment
 from decorators import admin_required
 
 providers_bp = Blueprint('providers_bp', __name__)
@@ -48,79 +49,60 @@ def crear():
 @login_required
 @admin_required
 def cuenta(id):
-    """Vista de cuenta individual del proveedor con saldo pendiente."""
+    """Vista de cuenta individual del proveedor con saldo pendiente basado en facturas."""
     proveedor = Provider.query.get_or_404(id)
 
-    # Calcular totales históricos
-    total_entregas = sum(e.costo_total for e in proveedor.entregas) or 0
+    # Calcular totales históricos de Facturas y Abonos
+    total_facturas = sum(f.monto_total for f in proveedor.invoices) or 0
     total_abonos = sum(p.monto_abonado for p in proveedor.pagos) or 0
-    saldo_pendiente = float(total_entregas) - float(total_abonos)
+    saldo_pendiente = float(total_facturas) - float(total_abonos)
 
-    # Productos disponibles para el selector de entregas
-    productos = Product.query.order_by(Product.nombre).all()
+    # Invoices and Payments sorted by date
+    historial = sorted(
+        [{'tipo': 'Factura', 'monto': float(f.monto_total), 'fecha': f.fecha_factura, 'ref': f.numero_factura or 'N/A', 'desc': f.descripcion} for f in proveedor.invoices] +
+        [{'tipo': 'Abono', 'monto': float(p.monto_abonado), 'fecha': p.fecha_pago, 'ref': 'N/A', 'desc': p.observacion} for p in proveedor.pagos],
+        key=lambda x: x['fecha'] or datetime.min,
+        reverse=True
+    )
 
     return render_template(
         'providers/cuenta.html',
         proveedor=proveedor,
-        total_entregas=float(total_entregas),
+        total_facturas=float(total_facturas),
         total_abonos=float(total_abonos),
         saldo_pendiente=saldo_pendiente,
-        productos=productos
+        historial=historial
     )
 
 
-@providers_bp.route('/<int:id>/delivery', methods=['POST'])
+@providers_bp.route('/<int:id>/invoice', methods=['POST'])
 @login_required
 @admin_required
-def registrar_entrega(id):
-    """Registra una entrega de mercancía y actualiza el stock del producto."""
+def registrar_factura(id):
+    """Registra una factura de proveedor (valor monetario)."""
     proveedor = Provider.query.get_or_404(id)
 
-    product_id = request.form.get('product_id', type=int)
-    cantidad_entregada = request.form.get('cantidad_entregada', 0, type=int)
-    costo_unitario = float(request.form.get('costo_unitario', 0))
+    monto_total = request.form.get('monto_total', type=float)
+    numero_factura = request.form.get('numero_factura', '').strip()
+    descripcion = request.form.get('descripcion', '').strip()
 
-    if not product_id or cantidad_entregada <= 0 or costo_unitario <= 0:
-        flash('Todos los campos de la entrega son obligatorios y deben ser mayores a 0.', 'danger')
+    if not monto_total or monto_total <= 0:
+        flash('El monto de la factura debe ser mayor a $0.', 'danger')
         return redirect(url_for('providers_bp.cuenta', id=id))
-
-    producto = Product.query.get(product_id)
-    if not producto:
-        flash('El producto seleccionado no existe en el inventario.', 'danger')
-        return redirect(url_for('providers_bp.cuenta', id=id))
-
-    costo_total = round(costo_unitario * cantidad_entregada, 2)
 
     try:
-        # Registrar la entrega del proveedor
-        entrega = ProviderDelivery(
+        nueva_factura = ProviderInvoice(
             provider_id=proveedor.id,
-            product_id=producto.id,
-            cantidad_entregada=cantidad_entregada,
-            costo_unitario=costo_unitario,
-            costo_total=costo_total
+            monto_total=monto_total,
+            numero_factura=numero_factura or None,
+            descripcion=descripcion or None
         )
-        db.session.add(entrega)
-
-        # Actualizar stock del producto en inventario
-        stock_anterior = producto.cantidad_stock
-        producto.cantidad_stock += cantidad_entregada
-
-        # Registrar en el Kardex de ajustes
-        ajuste = StockAdjustment(
-            product_id=producto.id,
-            admin_id=current_user.id,
-            tipo_movimiento=f'Entrega de Proveedor ({proveedor.nombre})',
-            stock_anterior=stock_anterior,
-            stock_nuevo=producto.cantidad_stock
-        )
-        db.session.add(ajuste)
-
+        db.session.add(nueva_factura)
         db.session.commit()
-        flash(f'Entrega registrada: +{cantidad_entregada} unids. de "{producto.nombre}" al inventario.', 'success')
+        flash(f'Factura de ${monto_total:,.2f} registrada para "{proveedor.nombre}".', 'success')
     except Exception:
         db.session.rollback()
-        flash('Error al registrar la entrega en la base de datos.', 'danger')
+        flash('Error al registrar la factura en la base de datos.', 'danger')
 
     return redirect(url_for('providers_bp.cuenta', id=id))
 
@@ -132,10 +114,10 @@ def registrar_pago(id):
     """Registra un abono o pago al proveedor."""
     proveedor = Provider.query.get_or_404(id)
 
-    monto = float(request.form.get('monto_abonado', 0))
+    monto = request.form.get('monto_abonado', type=float)
     observacion = request.form.get('observacion', '').strip()
 
-    if monto <= 0:
+    if not monto or monto <= 0:
         flash('El monto del abono debe ser mayor a $0.', 'danger')
         return redirect(url_for('providers_bp.cuenta', id=id))
 
