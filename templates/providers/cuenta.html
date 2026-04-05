@@ -59,6 +59,7 @@
                         <th>Fecha</th>
                         <th>N° Factura</th>
                         <th>Descripción</th>
+                        <th>Ver</th>
                         <th class="text-end">Monto</th>
                     </tr>
                 </thead>
@@ -68,6 +69,15 @@
                         <td class="text-muted small">{{ f.fecha_factura.strftime('%d/%m/%Y') if f.fecha_factura else '—' }}</td>
                         <td class="fw-bold text-brand-black">{{ f.numero_factura or '—' }}</td>
                         <td class="small">{{ f.descripcion or '—' }}</td>
+                        <td class="text-center">
+                            {% if f.comprobante %}
+                            <a href="{{ url_for('static', filename='uploads/' + f.comprobante) }}" target="_blank" class="text-brand-pink">
+                                <i class="fa-solid fa-image fs-5"></i>
+                            </a>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
                         <td class="text-end fw-bold">${{ "{:,.2f}".format(f.monto_total) }}</td>
                     </tr>
                     {% else %}
@@ -131,7 +141,7 @@
         <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice me-2" style="color: var(--brand-gold);"></i>Registrar Factura</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form action="{{ url_for('providers_bp.registrar_factura', id=proveedor.id) }}" method="POST">
+      <form action="{{ url_for('providers_bp.registrar_factura', id=proveedor.id) }}" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-body">
             <div class="mb-3">
@@ -145,6 +155,10 @@
             <div class="mb-3">
                 <label class="form-label fw-bold text-brand-black small">Descripción / Observación</label>
                 <textarea name="descripcion" class="form-control" rows="2" placeholder="Ej: Mercancía del mes de Abril, Lencería..."></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Adjuntar Foto de Factura (Opcional)</label>
+                <input type="file" name="comprobante" class="form-control" accept="image/*, application/pdf">
             </div>
         </div>
         <div class="modal-footer border-top-0 pt-0">

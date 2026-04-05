@@ -137,6 +137,7 @@ class ProviderInvoice(db.Model):
     numero_factura = db.Column(db.String(100), nullable=True) # Opcional
     monto_total = db.Column(db.Numeric(10, 2), nullable=False)
     descripcion = db.Column(db.String(255), nullable=True)
+    comprobante = db.Column(db.String(255), nullable=True) # Foto o PDF adjunto
     fecha_factura = db.Column(db.DateTime, default=obtener_hora_bogota)
 
 class ProviderDelivery(db.Model):

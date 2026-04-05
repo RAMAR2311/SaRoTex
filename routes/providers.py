@@ -1,5 +1,7 @@
+import os
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from models import db, Provider, ProviderInvoice, ProviderPayment, Product, StockAdjustment
 from decorators import admin_required
@@ -91,11 +93,23 @@ def registrar_factura(id):
         return redirect(url_for('providers_bp.cuenta', id=id))
 
     try:
+        # --- Manejo de la Imagen de la Factura ---
+        comprobante_filename = None
+        if 'comprobante' in request.files:
+            file = request.files['comprobante']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                # Opcional: prefijo con timestamp para evitar colisiones
+                filename = f"inv_{int(datetime.now().timestamp())}_{filename}"
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                comprobante_filename = filename
+
         nueva_factura = ProviderInvoice(
             provider_id=proveedor.id,
             monto_total=monto_total,
             numero_factura=numero_factura or None,
-            descripcion=descripcion or None
+            descripcion=descripcion or None,
+            comprobante=comprobante_filename
         )
         db.session.add(nueva_factura)
         db.session.commit()
