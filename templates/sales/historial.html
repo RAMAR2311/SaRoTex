@@ -113,14 +113,29 @@
                         <i class="fa-solid fa-user-circle text-muted me-1"></i> {{ venta.vendedor.nombre }}
                     </td>
                     <td class="text-center align-middle">
-                        {% if venta.metodo_pago == 'efectivo' %}
+                        {% if venta.pagos and venta.pagos|length > 1 %}
+                            {% for pago in venta.pagos %}
+                                {% if pago.metodo_pago == 'efectivo' %}
+                                    <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-money-bills me-1"></i>${{ "%.0f"|format(pago.monto) }}</span>
+                                {% elif pago.metodo_pago == 'nequi' %}
+                                    <span class="badge border rounded-pill px-2 py-1 mb-1" style="background-color: rgba(135,0,195,0.1); color: #8700c3; border-color: #8700c3 !important; font-size: 0.7rem;"><i class="fa-solid fa-mobile-screen me-1"></i>${{ "%.0f"|format(pago.monto) }}</span>
+                                {% elif pago.metodo_pago == 'bancolombia' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-building-columns me-1"></i>${{ "%.0f"|format(pago.monto) }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-coins me-1"></i>{{ pago.metodo_pago|capitalize }} ${{ "%.0f"|format(pago.monto) }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% elif venta.metodo_pago == 'efectivo' %}
                             <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
                         {% elif venta.metodo_pago == 'nequi' %}
                             <span class="badge border rounded-pill px-3 py-2" style="background-color: rgba(135,0,195,0.1); color: #8700c3; border-color: #8700c3 !important;"><i class="fa-solid fa-mobile-screen me-1"></i> Nequi</span>
                         {% elif venta.metodo_pago == 'bancolombia' %}
                             <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-coins me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
                         {% endif %}
                     </td>
+
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5">
                         ${{ "%.2f"|format(venta.monto_total) }}
                     </td>

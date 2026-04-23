@@ -69,10 +69,26 @@
         .col-prod { width: 55%; padding-right: 10px; }
         .col-sub { width: 30%; text-align: right; }
 
+        .variant-label {
+            display: block;
+            font-size: 0.7rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .external-badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            background: #eee;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-top: 2px;
+        }
+
         .totals {
             border-top: 2px dashed #010100;
             padding-top: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .total-row {
@@ -85,6 +101,29 @@
             padding: 12px 15px;
             border-radius: 6px;
             border: 1px solid #010100;
+        }
+
+        /* Sección de Pagos Detallados */
+        .pagos-section {
+            border-top: 1px dashed #ccc;
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+        .pagos-section h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+        .pago-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 4px 0;
+        }
+        .pago-metodo {
+            text-transform: capitalize;
+            font-weight: 600;
         }
 
         .footer {
@@ -133,9 +172,6 @@
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
-        <p class="info" style="font-weight: bold; text-transform: uppercase;">
-            Método de Pago: {{ venta.metodo_pago }}
-        </p>
     </div>
 
     <table class="table-items">
@@ -150,9 +186,16 @@
             {% for detalle in venta.detalles %}
             <tr>
                 <td class="col-qty">{{ detalle.cantidad_vendida }}</td>
-                <!-- Cortar la longitud del título si es gigantesco para no descuadrar la ticketera -->
                 <td class="col-prod">
-                    {{ detalle.producto.nombre[:25] }}{% if detalle.producto.nombre|length > 25 %}...{% endif %}
+                    {% if detalle.es_externo %}
+                        {{ (detalle.nombre_externo or 'Producto Externo')[:25] }}{% if (detalle.nombre_externo or '')|length > 25 %}...{% endif %}
+                        <span class="external-badge">EXTERNO</span>
+                    {% else %}
+                        {{ detalle.producto.nombre[:25] }}{% if detalle.producto.nombre|length > 25 %}...{% endif %}
+                        {% if detalle.variante %}
+                            <span class="variant-label">↳ {{ detalle.variante.nombre_variante }}</span>
+                        {% endif %}
+                    {% endif %}
                 </td>
                 <td class="col-sub">${{ "%.2f"|format(detalle.precio_venta_final * detalle.cantidad_vendida) }}</td>
             </tr>
@@ -166,6 +209,23 @@
             <span>${{ "%.2f"|format(venta.monto_total) }}</span>
         </div>
     </div>
+
+    <!-- Desglose de Pagos -->
+    {% if venta.pagos and venta.pagos|length > 0 %}
+    <div class="pagos-section">
+        <h4>Medios de Pago</h4>
+        {% for pago in venta.pagos %}
+        <div class="pago-row">
+            <span class="pago-metodo">{{ pago.metodo_pago }}</span>
+            <span>${{ "%.2f"|format(pago.monto) }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="info" style="font-weight: bold; text-transform: uppercase; text-align: center; margin-top: 10px;">
+        Método de Pago: {{ venta.metodo_pago }}
+    </p>
+    {% endif %}
 
     <div class="footer">
         <p style="font-size: 1rem; font-weight: bold;">¡Gracias por tu compra!</p>

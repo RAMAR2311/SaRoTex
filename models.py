@@ -41,6 +41,26 @@ class Product(db.Model):
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
     ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True)
+    variantes = db.relationship('ProductVariant', backref='producto_padre', lazy=True, cascade='all, delete-orphan')
+
+
+# ===================== VARIANTES DE PRODUCTO (Subcategorías: Color, Talla, etc.) =====================
+
+class ProductVariant(db.Model):
+    __tablename__ = 'product_variants'
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    nombre_variante = db.Column(db.String(100), nullable=False)  # Ej: "Rojo - Talla M"
+    sku_variante = db.Column(db.String(50), unique=True, nullable=True, index=True)
+    cantidad_stock = db.Column(db.Integer, nullable=False, default=0)
+    precio_costo = db.Column(db.Numeric(10, 2), nullable=True)     # Override o hereda del padre
+    precio_minimo = db.Column(db.Numeric(10, 2), nullable=True)
+    precio_sugerido = db.Column(db.Numeric(10, 2), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+
+# ===================== MODELO DE VENTAS AMPLIADO (POS Terminal) =====================
 
 class Sale(db.Model):
     __tablename__ = 'sales'
@@ -49,24 +69,46 @@ class Sale(db.Model):
     vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     fecha_venta = db.Column(db.DateTime, default=obtener_hora_bogota)
     monto_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    metodo_pago = db.Column(db.String(50), nullable=False, default='efectivo')
+    costo_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)   # Suma de costos de los items
+    utilidad = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)       # Ganancia = monto_total - costo_total
+    metodo_pago = db.Column(db.String(50), nullable=False, default='efectivo') # Mantiene compatibilidad legacy
+    estado = db.Column(db.String(30), nullable=False, default='completada')    # completada, anulada, etc.
     
     detalles = db.relationship('SaleDetail', backref='venta', lazy=True, cascade="all, delete-orphan")
+    pagos = db.relationship('SalePayment', backref='venta', lazy=True, cascade="all, delete-orphan")
 
 class SaleDetail(db.Model):
     __tablename__ = 'sale_details'
     
     id = db.Column(db.Integer, primary_key=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)  # NULL si es producto externo
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)  # NULL si es producto simple
     cantidad_vendida = db.Column(db.Integer, nullable=False)
     precio_venta_final = db.Column(db.Numeric(10, 2), nullable=False)
+    costo_unitario = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    es_externo = db.Column(db.Boolean, nullable=False, default=False)    # True = producto manual/prestado
+    nombre_externo = db.Column(db.String(200), nullable=True)            # Nombre del producto fantasma
+
+    variante = db.relationship('ProductVariant', backref='detalles_venta', lazy=True)
+
+
+class SalePayment(db.Model):
+    """Consolidación Multimétodo — Un recibo puede tener N métodos de pago."""
+    __tablename__ = 'sale_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
+    metodo_pago = db.Column(db.String(50), nullable=False)  # efectivo, nequi, bancolombia, binance, tarjeta
+    monto = db.Column(db.Numeric(10, 2), nullable=False)
+
 
 class StockAdjustment(db.Model):
     __tablename__ = 'stock_adjustments'
     
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     tipo_movimiento = db.Column(db.String(100), nullable=True) # Ej: Creación Inicial, Ajuste Manual
     stock_anterior = db.Column(db.Integer, nullable=False)

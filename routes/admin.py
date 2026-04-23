@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 
-from models import db, Product, Sale, User, Maneo, SaleDetail, StockAdjustment, Expense, StaffPayment, ProviderPayment, obtener_hora_bogota
+from models import db, Product, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, StaffPayment, ProviderPayment, obtener_hora_bogota
 from decorators import admin_required
 
 admin_bp = Blueprint('admin_bp', __name__)
