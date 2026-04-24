@@ -31,13 +31,41 @@
 
                 <div class="d-flex justify-content-between px-4 py-3 bg-light rounded mb-3">
                     <span class="text-muted">Stock Actual</span>
-                    <span class="fw-bold fs-5 {% if producto.cantidad_stock <= 10 %}text-danger{% else %}text-success{% endif %}">
-                        {{ producto.cantidad_stock }} uds
+                    <span class="fw-bold fs-5 {% if producto.total_stock <= 5 %}text-danger{% else %}text-success{% endif %}">
+                        {{ producto.total_stock }} uds
                     </span>
                 </div>
                 <div class="d-flex justify-content-between px-4 py-3 bg-light rounded mb-3">
                     <span class="text-muted">Precio Sugerido</span>
-                    <span class="fw-bold fs-5 text-brand-black">${{ "%.2f"|format(producto.precio_sugerido) }}</span>
+                    <span class="fw-bold fs-5 text-brand-black">${{ "{:,.0f}".format(producto.precio_sugerido) }}</span>
+                </div>
+                
+                <!-- Gestión de Subcategorías (NUEVO) -->
+                <div class="mt-4 pt-4 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-sitemap me-2"></i>Subcategorías</h6>
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#variantesModal{{ producto.id }}">
+                            <i class="fa-solid fa-plus me-1"></i> Gestionar
+                        </button>
+                    </div>
+                    
+                    {% if producto.variantes %}
+                    <div class="d-flex flex-column gap-2">
+                        {% for v in producto.variantes %}
+                        <div class="p-2 bg-light rounded border d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold small">{{ v.nombre_variante }}</span>
+                                <div class="text-muted" style="font-size: 0.75rem;">Sug: ${{ "{:,.0f}".format(v.precio_sugerido|float) if v.precio_sugerido else "{:,.0f}".format(producto.precio_sugerido|float) }}</div>
+                            </div>
+                            <span class="badge bg-brand-gold text-dark rounded-pill">{{ v.cantidad_stock }} uds</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="p-3 bg-light rounded text-center text-muted small border">
+                        Este producto no tiene subcategorías registradas.
+                    </div>
+                    {% endif %}
                 </div>
                 
                 {% if producto.observacion %}
@@ -50,6 +78,11 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Modal de Variantes (Inyectado para que funcione el botón de arriba) -->
+        {% with p = producto %}
+            {% include 'inventory/modal_variantes.html' %}
+        {% endwith %}
 
         <!-- Trazabilidad de Inventario (Derecha) -->
         <div class="col-lg-8">

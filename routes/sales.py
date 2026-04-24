@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
 from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, StockAdjustment, obtener_hora_bogota
 from decorators import admin_required
@@ -298,7 +298,7 @@ def api_buscar_producto(sku):
         'id': producto.id,
         'nombre': producto.nombre,
         'sku': producto.sku,
-        'cantidad_stock': producto.cantidad_stock,
+        'cantidad_stock': producto.total_stock,
         'precio_costo': float(producto.precio_costo),
         'precio_minimo': float(producto.precio_minimo),
         'precio_limite': float(producto.precio_costo) if current_user.rol == 'admin' else float(producto.precio_minimo),
@@ -344,20 +344,26 @@ def historial():
         # Sumar 1 día matemáticamente para incluir los registros hasta las 23:59:59 del último día
         query = query.filter(Sale.fecha_venta < fin_dt + timedelta(days=1))
         
-    ventas = query.order_by(Sale.fecha_venta.desc()).all()
+    ventas_totales = query.order_by(Sale.fecha_venta.desc()).all()
+    
+    page = request.args.get('page', 1, type=int)
+    ventas_paginadas = query.order_by(Sale.fecha_venta.desc()).paginate(page=page, per_page=15, error_out=False)
     
     # Auditar y cruzar sumatorios de métricas de pago (ahora desde SalePayment)
     total_efectivo = Decimal('0.00')
     total_nequi = Decimal('0.00')
+    total_daviplata = Decimal('0.00')
     total_bancolombia = Decimal('0.00')
 
-    for v in ventas:
+    for v in ventas_totales:
         if v.pagos:
             for p in v.pagos:
                 if p.metodo_pago == 'efectivo':
                     total_efectivo += p.monto
                 elif p.metodo_pago == 'nequi':
                     total_nequi += p.monto
+                elif p.metodo_pago == 'daviplata':
+                    total_daviplata += p.monto
                 elif p.metodo_pago == 'bancolombia':
                     total_bancolombia += p.monto
         else:
@@ -366,14 +372,17 @@ def historial():
                 total_efectivo += v.monto_total
             elif v.metodo_pago == 'nequi':
                 total_nequi += v.monto_total
+            elif v.metodo_pago == 'daviplata':
+                total_daviplata += v.monto_total
             elif v.metodo_pago == 'bancolombia':
                 total_bancolombia += v.monto_total
 
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
-                           ventas=ventas, 
+                           ventas=ventas_paginadas, 
                            total_efectivo=total_efectivo,
                            total_nequi=total_nequi,
+                           total_daviplata=total_daviplata,
                            total_bancolombia=total_bancolombia,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
@@ -399,3 +408,64 @@ def catalogo():
         productos = Product.query.limit(50).all()
         
     return render_template('sales/catalogo.html', productos=productos, q=query_str)
+@sales_bp.route('/eliminar/<int:sale_id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_venta(sale_id):
+    """Elimina una venta y devuelve el stock al inventario."""
+    venta = Sale.query.get_or_404(sale_id)
+    
+    try:
+        # Revertir stock de cada detalle
+        for detalle in venta.detalles:
+            if not detalle.es_externo:
+                if detalle.variant_id:
+                    variante = ProductVariant.query.get(detalle.variant_id)
+                    if variante:
+                        stock_anterior = variante.cantidad_stock
+                        variante.cantidad_stock += detalle.cantidad_vendida
+                        
+                        # Registrar en el Kardex
+                        ajuste = StockAdjustment(
+                            product_id=variante.product_id,
+                            variant_id=variante.id,
+                            admin_id=current_user.id,
+                            tipo_movimiento=f'Devolución por Eliminación Venta #{venta.id}',
+                            stock_anterior=stock_anterior,
+                            stock_nuevo=variante.cantidad_stock
+                        )
+                        db.session.add(ajuste)
+                        
+                        # Actualizar stock total del padre si es necesario (dependiendo de la implementación)
+                        # Como Product.total_stock es una property, no hace falta actualizar columna si solo se usa la property.
+                        # Pero en Sora solemos sincronizar Product.cantidad_stock.
+                        padre = Product.query.get(variante.product_id)
+                        if padre:
+                            padre.cantidad_stock += detalle.cantidad_vendida
+                else:
+                    producto = Product.query.get(detalle.product_id)
+                    if producto:
+                        stock_anterior = producto.cantidad_stock
+                        producto.cantidad_stock += detalle.cantidad_vendida
+                        
+                        # Registrar en el Kardex
+                        ajuste = StockAdjustment(
+                            product_id=producto.id,
+                            variant_id=None,
+                            admin_id=current_user.id,
+                            tipo_movimiento=f'Devolución por Eliminación Venta #{venta.id}',
+                            stock_anterior=stock_anterior,
+                            stock_nuevo=producto.cantidad_stock
+                        )
+                        db.session.add(ajuste)
+
+        db.session.delete(venta)
+        db.session.commit()
+        flash(f'Venta #{sale_id} eliminada y stock devuelto al inventario.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        traceback.print_exc()
+        flash('Error al eliminar la venta y revertir el stock.', 'danger')
+
+    return redirect(url_for('sales_bp.historial'))

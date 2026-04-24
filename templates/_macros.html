@@ -1,0 +1,35 @@
+{% macro render_pagination(pagination, endpoint) %}
+{% if pagination.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4 d-print-none">
+    <ul class="pagination justify-content-center">
+        <!-- Anterior -->
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link shadow-sm" style="color: var(--brand-black);" 
+               href="{% if pagination.has_prev %}{{ url_for(endpoint, page=pagination.prev_num, **request.args) }}{% else %}#{% endif %}" tabindex="-1">
+               <i class="fa-solid fa-chevron-left"></i> Anterior
+            </a>
+        </li>
+        
+        <!-- Números -->
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link shadow-sm {% if page_num == pagination.page %}bg-dark text-white border-dark{% else %}text-dark{% endif %}" 
+                       href="{{ url_for(endpoint, page=page_num, **request.args) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link text-muted border-0">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        <!-- Siguiente -->
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link shadow-sm" style="color: var(--brand-black);" 
+               href="{% if pagination.has_next %}{{ url_for(endpoint, page=pagination.next_num, **request.args) }}{% else %}#{% endif %}">
+               Siguiente <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endmacro %}

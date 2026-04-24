@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from '_macros.html' import render_pagination %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -49,31 +50,37 @@
                 <div class="col-sm-6 col-md-3">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Efectivo Sistema (Ventas)</small>
-                        <h4 class="mb-0 text-success fw-bold">${{ "%.2f"|format(resumen.total_efectivo) }}</h4>
+                        <h4 class="mb-0 text-success fw-bold">${{ "{:,.0f}".format(resumen.total_efectivo) }}</h4>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-2">
+                <div class="col-6 col-md-2">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Nequi Sistema</small>
-                        <h4 class="mb-0 fw-bold" style="color: #8700c3;">${{ "%.2f"|format(resumen.total_nequi) }}</h4>
+                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Nequi</small>
+                        <h4 class="mb-0 fw-bold" style="color: #8700c3;">${{ "{:,.0f}".format(resumen.total_nequi) }}</h4>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-2">
+                <div class="col-6 col-md-2">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Bancolombia Sistema</small>
-                        <h4 class="mb-0 fw-bold" style="color: #d4a017;">${{ "%.2f"|format(resumen.total_bancolombia) }}</h4>
+                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Daviplata</small>
+                        <h4 class="mb-0 fw-bold text-danger">${{ "{:,.0f}".format(resumen.total_daviplata) }}</h4>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
+                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Bancolombia</small>
+                        <h4 class="mb-0 fw-bold" style="color: #d4a017;">${{ "{:,.0f}".format(resumen.total_bancolombia) }}</h4>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-3">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Gastos Operativos Retirados</small>
-                        <h4 class="mb-0 text-danger fw-bold">$-{{ "%.2f"|format(resumen.total_gastos) }}</h4>
+                        <h4 class="mb-0 text-danger fw-bold">$-{{ "{:,.0f}".format(resumen.total_gastos) }}</h4>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-3">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #EBDAB6 !important;">
                         <small class="text-secondary fw-bold d-block mb-1">CAJA FÍSICA ESPERADA FINAL</small>
-                        <h4 class="mb-0 text-dark fw-bold">${{ "%.2f"|format(resumen.efectivo_esperado) }}</h4>
+                        <h4 class="mb-0 text-dark fw-bold">${{ "{:,.0f}".format(resumen.efectivo_esperado) }}</h4>
                 <small class="text-muted d-block mt-1" style="font-size:0.7rem;">(Base Inicial + VentasCash) - Gastos</small>
                     </div>
                 </div>
@@ -91,14 +98,18 @@
                             {% endif %}
                             <th width="12%" class="text-primary">Base Inicial</th>
                             <th width="12%" class="text-success">Ventas Cash</th>
-                            <th width="10%" style="color: #8700c3;">Nequi</th>
-                            <th width="10%" style="color: #d4a017;">Bancolombia</th>
-                            <th width="15%" class="text-danger">Salida (Gastos)</th>
-                            <th width="24%">Detalle del Gasto</th>
+                            <th width="8%" style="color: #8700c3;">Nequi</th>
+                            <th width="8%" class="text-danger">Daviplata</th>
+                            <th width="8%" style="color: #d4a017;">Bancolombia</th>
+                            <th width="12%" class="text-danger">Salida (Gastos)</th>
+                            <th width="20%">Detalle del Gasto</th>
+                            {% if current_user.rol == 'admin' %}
+                            <th width="5%" class="d-print-none text-center">Acción</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.9rem;">
-                        {% for arqueo in arqueos %}
+                        {% for arqueo in arqueos.items %}
                         <tr>
                             <td class="text-center text-secondary">{{ arqueo.fecha_arqueo }}</td>
                             
@@ -106,19 +117,31 @@
                             <td class="text-truncate" style="max-width:120px;" title="{{ arqueo.cajero.nombre }}">{{ arqueo.cajero.nombre }}</td>
                             {% endif %}
 
-                            <td class="text-end text-primary fw-bold">${{ "%.2f"|format(arqueo.base_inicial) }}</td>
-                            <td class="text-end text-success fw-bold">${{ "%.2f"|format(arqueo.total_efectivo_sistema) }}</td>
-                            <td class="text-end fw-bold" style="color: #8700c3;">${{ "%.2f"|format(arqueo.total_nequi_sistema) }}</td>
-                            <td class="text-end fw-bold" style="color: #d4a017;">${{ "%.2f"|format(arqueo.total_bancolombia_sistema) }}</td>
+                            <td class="text-end text-primary fw-bold">${{ "{:,.0f}".format(arqueo.base_inicial) }}</td>
+                            <td class="text-end text-success fw-bold">${{ "{:,.0f}".format(arqueo.total_efectivo_sistema) }}</td>
+                            <td class="text-end fw-bold" style="color: #8700c3;">${{ "{:,.0f}".format(arqueo.total_nequi_sistema) }}</td>
+                            <td class="text-end fw-bold text-danger">${{ "{:,.0f}".format(arqueo.total_daviplata_sistema) }}</td>
+                            <td class="text-end fw-bold" style="color: #d4a017;">${{ "{:,.0f}".format(arqueo.total_bancolombia_sistema) }}</td>
                             
                             <!-- Gastos con validación de color si es nulo -->
                             <td class="text-end {% if arqueo.gastos_del_dia > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
-                                ${{ "%.2f"|format(arqueo.gastos_del_dia) }}
+                                ${{ "{:,.0f}".format(arqueo.gastos_del_dia) }}
                             </td>
                             
                             <td class="text-muted fst-italic" style="font-size: 0.8rem;">
                                 {{ arqueo.observaciones_gastos if arqueo.observaciones_gastos else '-' }}
                             </td>
+
+                            {% if current_user.rol == 'admin' %}
+                            <td class="text-center d-print-none">
+                                <form action="{{ url_for('arqueo_bp.eliminar', arqueo_id=arqueo.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de revertir este arqueo? Esto permitirá realizar un nuevo arqueo para esta fecha.')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
                         </tr>
                         {% else %}
                         <tr>
@@ -129,7 +152,38 @@
                 </table>
             </div>
 
+            <!-- Renderizar Paginación -->
+            {{ render_pagination(arqueos, 'arqueo_bp.reporte') }}
+
+            <!-- Nueva Sección Analítica: Resumen de Productos Vendidos -->
+            <h5 class="fw-bold text-brand-black mb-3 mt-5 border-bottom pb-2">📦 Resumen de Productos Vendidos (Detalle de Inventario)</h5>
+            <div class="table-responsive mb-5">
+                <table class="table table-sm table-bordered align-middle">
+                    <thead class="table-light text-center" style="font-size: 0.85rem;">
+                        <tr>
+                            <th class="ps-3 text-start">Producto / Variante</th>
+                            <th width="15%">Cantidad Vendida</th>
+                            <th width="20%" class="text-end pe-3">Total Recaudado</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.9rem;">
+                        {% for item in productos_vendidos %}
+                        <tr>
+                            <td class="ps-3 fw-semibold text-brand-black">{{ item.nombre }}</td>
+                            <td class="text-center fw-bold">{{ item.cantidad }} uds</td>
+                            <td class="text-end pe-3 fw-bold text-success">${{ "{:,.0f}".format(item.monto) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">No se registraron ventas de productos en este periodo.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
             <!-- Firmas Contables -->
+
             <div class="row mt-5 pt-5 d-none d-print-flex">
                 <div class="col-6 text-center">
                     <hr class="w-75 mx-auto border-dark border-1 opacity-100">

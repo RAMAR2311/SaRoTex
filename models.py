@@ -40,9 +40,52 @@ class Product(db.Model):
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
-    ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True)
+    ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True, cascade='all, delete-orphan')
     variantes = db.relationship('ProductVariant', backref='producto_padre', lazy=True, cascade='all, delete-orphan')
+    @property
+    def total_stock(self):
+        if self.variantes:
+            return sum(v.cantidad_stock for v in self.variantes)
+        return self.cantidad_stock
 
+    @property
+    def rango_precios(self):
+        if not self.variantes:
+            return None
+        precios = [v.precio_sugerido for v in self.variantes if v.precio_sugerido is not None]
+        if not precios:
+            return None
+        min_p = min(precios)
+        max_p = max(precios)
+        if min_p == max_p:
+            return min_p
+        return (min_p, max_p)
+
+    @property
+    def rango_costos(self):
+        if not self.variantes:
+            return None
+        precios = [v.precio_costo for v in self.variantes if v.precio_costo is not None]
+        if not precios:
+            return None
+        min_p = min(precios)
+        max_p = max(precios)
+        if min_p == max_p:
+            return min_p
+        return (min_p, max_p)
+
+    @property
+    def rango_minimos(self):
+        if not self.variantes:
+            return None
+        precios = [v.precio_minimo for v in self.variantes if v.precio_minimo is not None]
+        if not precios:
+            return None
+        min_p = min(precios)
+        max_p = max(precios)
+        if min_p == max_p:
+            return min_p
+        return (min_p, max_p)
 
 # ===================== VARIANTES DE PRODUCTO (Subcategorías: Color, Talla, etc.) =====================
 
@@ -126,6 +169,7 @@ class ArqueoCaja(db.Model):
     observaciones_gastos = db.Column(db.String(255), nullable=True)
     total_efectivo_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     total_nequi_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    total_daviplata_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     total_bancolombia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
@@ -134,6 +178,7 @@ class Maneo(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     local_vecino = db.Column(db.String(150), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     estado = db.Column(db.String(50), nullable=False, default='PENDIENTE') # PENDIENTE, FACTURADO, DEVUELTO
@@ -141,6 +186,7 @@ class Maneo(db.Model):
     fecha_resolucion = db.Column(db.DateTime, nullable=True)
 
     producto = db.relationship('Product', backref='maneos', lazy=True)
+    variante = db.relationship('ProductVariant', backref='maneos_rel', lazy=True)
 
 class Expense(db.Model):
     __tablename__ = 'expenses'

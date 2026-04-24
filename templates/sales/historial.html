@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from '_macros.html' import render_pagination %}
 
 {% block content %}
 <div class="row mb-4">
@@ -30,29 +31,38 @@
     </div>
 
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-12 col-md-4 mb-3">
+    <div class="col-12 col-md-3 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-blue) !important;">
             <div class="card-body py-4 ps-4">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-money-bills me-1"></i> Entradas en Efectivo</p>
-                <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">${{ "%.2f"|format(total_efectivo) }}</h2>
+                <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">${{ "{:,.0f}".format(total_efectivo) }}</h2>
             </div>
         </div>
     </div>
     
-    <div class="col-12 col-md-4 mb-3">
+    <div class="col-12 col-md-3 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid #8700c3 !important;">
             <div class="card-body py-4 ps-4">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-mobile-screen me-1"></i> Ventas Nequi</p>
-                <h2 class="fw-bolder m-0" style="color: #8700c3;">${{ "%.2f"|format(total_nequi) }}</h2>
+                <h2 class="fw-bolder m-0" style="color: #8700c3;">${{ "{:,.0f}".format(total_nequi) }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-3 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #dc3545 !important;">
+            <div class="card-body py-4 ps-4">
+                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-mobile-screen me-1"></i> Ventas Daviplata</p>
+                <h2 class="fw-bolder m-0" style="color: #dc3545;">${{ "{:,.0f}".format(total_daviplata) }}</h2>
             </div>
         </div>
     </div>
     
-    <div class="col-12 col-md-4 mb-3">
+    <div class="col-12 col-md-3 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid #ffc107 !important;">
             <div class="card-body py-4 ps-4">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-building-columns me-1"></i> Ventas Bancolombia</p>
-                <h2 class="fw-bolder m-0" style="color: #d4a017;">${{ "%.2f"|format(total_bancolombia) }}</h2>
+                <h2 class="fw-bolder m-0" style="color: #d4a017;">${{ "{:,.0f}".format(total_bancolombia) }}</h2>
             </div>
         </div>
     </div>
@@ -105,7 +115,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for venta in ventas %}
+                {% for venta in ventas.items %}
                 <tr>
                     <td class="fw-bold text-brand-black align-middle">Ticket #{{ "%05d"|format(venta.id) }}</td>
                     <td class="align-middle text-muted"><i class="fa-regular fa-calendar text-brand-pink me-1"></i> {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}</td>
@@ -116,13 +126,15 @@
                         {% if venta.pagos and venta.pagos|length > 1 %}
                             {% for pago in venta.pagos %}
                                 {% if pago.metodo_pago == 'efectivo' %}
-                                    <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-money-bills me-1"></i>${{ "%.0f"|format(pago.monto) }}</span>
+                                    <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-money-bills me-1"></i>${{ "{:,.0f}".format(pago.monto) }}</span>
                                 {% elif pago.metodo_pago == 'nequi' %}
-                                    <span class="badge border rounded-pill px-2 py-1 mb-1" style="background-color: rgba(135,0,195,0.1); color: #8700c3; border-color: #8700c3 !important; font-size: 0.7rem;"><i class="fa-solid fa-mobile-screen me-1"></i>${{ "%.0f"|format(pago.monto) }}</span>
+                                    <span class="badge border rounded-pill px-2 py-1 mb-1" style="background-color: rgba(135,0,195,0.1); color: #8700c3; border-color: #8700c3 !important; font-size: 0.7rem;"><i class="fa-solid fa-mobile-screen me-1"></i>${{ "{:,.0f}".format(pago.monto) }}</span>
                                 {% elif pago.metodo_pago == 'bancolombia' %}
-                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-building-columns me-1"></i>${{ "%.0f"|format(pago.monto) }}</span>
+                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-building-columns me-1"></i>${{ "{:,.0f}".format(pago.monto) }}</span>
+                                {% elif pago.metodo_pago == 'daviplata' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-mobile-screen me-1"></i>${{ "{:,.0f}".format(pago.monto) }}</span>
                                 {% else %}
-                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-coins me-1"></i>{{ pago.metodo_pago|capitalize }} ${{ "%.0f"|format(pago.monto) }}</span>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;"><i class="fa-solid fa-coins me-1"></i>{{ pago.metodo_pago|capitalize }} ${{ "{:,.0f}".format(pago.monto) }}</span>
                                 {% endif %}
                             {% endfor %}
                         {% elif venta.metodo_pago == 'efectivo' %}
@@ -131,19 +143,29 @@
                             <span class="badge border rounded-pill px-3 py-2" style="background-color: rgba(135,0,195,0.1); color: #8700c3; border-color: #8700c3 !important;"><i class="fa-solid fa-mobile-screen me-1"></i> Nequi</span>
                         {% elif venta.metodo_pago == 'bancolombia' %}
                             <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</span>
+                        {% elif venta.metodo_pago == 'daviplata' %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</span>
                         {% else %}
                             <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-coins me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
                         {% endif %}
                     </td>
 
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5">
-                        ${{ "%.2f"|format(venta.monto_total) }}
+                        ${{ "{:,.0f}".format(venta.monto_total) }}
                     </td>
                     <td class="text-center align-middle">
-                        <!-- Botón Secundario Rosa Pastel -->
-                        <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-pink btn-sm rounded-pill px-3 fw-bold shadow-sm w-100">
-                            <i class="fa-solid fa-receipt me-1"></i> Ver Recibo
-                        </a>
+                        <div class="d-flex gap-1">
+                            <!-- Botón Secundario Rosa Pastel -->
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-pink btn-sm rounded-pill px-2 fw-bold shadow-sm flex-grow-1" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-receipt me-1"></i> Recibo
+                            </a>
+                            <form action="{{ url_for('sales_bp.eliminar_venta', sale_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Está seguro de eliminar esta venta? El stock será devuelto al inventario automáticamente.');" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0;" title="Eliminar Venta y devolver Stock">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
@@ -159,6 +181,9 @@
         </table>
     </div>
 </div>
+
+<!-- Renderizar Paginación -->
+{{ render_pagination(ventas, 'sales_bp.historial') }}
 
 <style>
 /* ====== Estilos Exclusivos para PDF/Impresión del Reporte de Ventas ====== */

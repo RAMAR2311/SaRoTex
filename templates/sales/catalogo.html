@@ -1,76 +1,204 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row mb-5">
-    <div class="col-12">
-        <!-- Titular Simple y Limpio, el color de marca A3D8DE acentúa el Logo -->
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
-            <i class="fa-solid fa-book-open me-2"></i>Catálogo de Stock General
-        </h2>
-    </div>
+<style>
+    :root {
+        --catalog-bg: #f8f9fa;
+        --catalog-card-bg: #ffffff;
+        --catalog-accent: #c7a76b; /* Gold/Champagne */
+        --catalog-text-main: #1a1a1a;
+        --catalog-text-muted: #6c757d;
+    }
+
+    .catalog-header {
+        background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 24px;
+        color: white;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .search-container {
+        max-width: 800px;
+        margin: -2.5rem auto 2rem;
+        position: relative;
+        z-index: 10;
+    }
+
+    .search-input {
+        height: 64px;
+        border-radius: 20px;
+        border: none;
+        padding: 0 3rem 0 4rem;
+        font-size: 1.1rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--catalog-accent);
+        font-size: 1.3rem;
+    }
+
+    .product-card {
+        border: none;
+        border-radius: 24px;
+        background: var(--catalog-card-bg);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        position: relative;
+    }
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+
+    .stock-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stock-in { background: #e6fcf5; color: #0ca678; }
+    .stock-low { background: #fff9db; color: #f08c00; }
+    .stock-out { background: #fff5f5; color: #fa5252; }
+
+    .variant-item {
+        background: #f8f9fa;
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+    }
+
+    .variant-item:hover {
+        background: #f1f3f5;
+    }
+
+    .price-tag {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-size: 1.4rem;
+        color: var(--brand-black);
+    }
+
+    .sku-pill {
+        background: #e9ecef;
+        color: #495057;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="catalog-header text-center">
+    <h1 class="h2 fw-bold mb-1">Catálogo de Stock General</h1>
+    <p class="opacity-75 small mb-0">Consulta existencias y precios en tiempo real de toda la bodega.</p>
 </div>
 
-<div class="card card-custom p-4 border mt-2 bg-white shadow-sm mb-4">
-    <!-- El Formulario usa Método GET Nativo para enviar 'q' por barra de direcciones URL -->
-    <form method="GET" action="{{ url_for('sales_bp.catalogo') }}" class="row align-items-end g-3">
-        <div class="col-md-9">
-            <label class="form-label fw-bold text-brand-black small"><i class="fa-solid fa-magnifying-glass me-1"></i> Búsqueda de Artículos</label>
-            <!-- Permite filtrado profundo en la BD por Substraer Coincidencias (ILIKE) -->
-            <input type="text" name="q" class="form-control bg-light border-0 py-2 shadow-sm" value="{{ q }}" placeholder="Busca escribiendo el SKU Oficial o el Nombre del accesorio..." autocomplete="off">
-        </div>
-        <div class="col-md-3">
-            <!-- Botón Dominante en Turquesa (Azul de Cases.com '#EBDAB6') -->
-            <button type="submit" class="btn btn-blue w-100 py-2 rounded-3 shadow-sm fw-bold">
-                Buscar Existencias
-            </button>
+<div class="search-container">
+    <form action="{{ url_for('sales_bp.catalogo') }}" method="GET">
+        <div class="position-relative">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" name="q" value="{{ q }}" class="form-control search-input" placeholder="Buscar por nombre o SKU oficial...">
+            <button type="submit" class="btn btn-dark position-absolute end-0 top-50 translate-middle-y me-2 rounded-pill px-4 py-2" style="background: var(--brand-charcoal);">Buscar</button>
         </div>
     </form>
 </div>
 
-<div class="card card-custom p-0 overflow-hidden border-0 shadow-sm bg-white">
-    <div class="table-responsive">
-        <table class="table table-hover table-custom align-middle mb-0">
-            <thead class="bg-light">
-                <tr>
-                    <th width="140" class="ps-4">SKU OFICIAL</th>
-                    <th>ARTÍCULO FÍSICO</th>
-                    <th width="150" class="text-center">INVENTARIO</th>
-                    <th width="160" class="text-end">RANGO MÍNIMO</th>
-                    <th width="160" class="text-end pe-4">PRECIO VTA</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in productos %}
-                <!-- Regla Estricta: Fila degradada visualmente al 50% de opacidad si se acabaron -->
-                <tr class="{% if p.cantidad_stock <= 0 %}opacity-50{% endif %}">
-                    <td class="ps-4 fw-bold text-muted">{{ p.sku }}</td>
-                    <td class="fw-bold text-brand-black">{{ p.nombre }}</td>
-                    <td class="text-center">
-                        {% if p.cantidad_stock <= 0 %}
-                            <!-- Badge de Agotado en Rojo -->
-                            <span class="badge bg-danger rounded-pill px-3 py-2 w-100"><i class="fa-solid fa-ban me-1"></i> Sin Stock</span>
-                        {% else %}
-                            <!-- Badge Informativo Discreto -->
-                            <span class="badge bg-light text-dark rounded-pill px-3 py-2 border border-dark border-opacity-25 w-100">{{ p.cantidad_stock }} uds</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-end text-muted fw-bold">${{ "%.2f"|format(p.precio_minimo) }}</td>
-                    <!-- Resalta el precio directo al final en Turquesa Puro y Texto en Negro -->
-                    <td class="text-end fw-bolder text-brand-black pe-4" style="color: var(--brand-blue) !important; font-size: 1.1rem;">
-                        ${{ "%.2f"|format(p.precio_sugerido) }}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center py-5">
-                        <i class="fa-solid fa-box-open fs-1 mb-3 text-muted opacity-25"></i>
-                        <h4 class="text-brand-black fw-bold">Término No Encontrado</h4>
-                        <p class="text-muted mb-0">No pudimos rastrear productos en bodega bajo esas especificaciones.</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="row g-4">
+    {% for p in productos %}
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card product-card p-4">
+            <!-- Stock Badge Principal -->
+            {% if p.total_stock <= 0 %}
+                <span class="stock-badge stock-out">Agotado</span>
+            {% elif p.total_stock <= 5 %}
+                <span class="stock-badge stock-low">Bajo: {{ p.total_stock }}</span>
+            {% else %}
+                <span class="stock-badge stock-in">Stock: {{ p.total_stock }}</span>
+            {% endif %}
+
+            <div class="mb-3">
+                <span class="sku-pill">{{ p.sku }}</span>
+                <h4 class="fw-bold mb-1" style="color: var(--brand-black);">{{ p.nombre }}</h4>
+                {% if p.observaciones %}
+                <p class="text-muted small mb-0">{{ p.observaciones }}</p>
+                {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <p class="text-muted small mb-0 fw-bold">Precio Sugerido</p>
+                    <div class="price-tag">${{ "{:,.0f}".format(p.precio_sugerido) }}</div>
+                </div>
+                <div class="text-end">
+                    <p class="text-muted small mb-0 fw-bold">Rango Mínimo</p>
+                    <div class="fw-bold text-muted">${{ "{:,.0f}".format(p.precio_minimo) }}</div>
+                </div>
+            </div>
+
+            {% if p.variantes %}
+            <div class="mt-2 pt-3 border-top">
+                <p class="text-muted small fw-bold mb-2 uppercase text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fa-solid fa-layer-group me-1"></i> Subcategorías / Variantes
+                </p>
+                <div class="variant-list">
+                    {% for v in p.variantes %}
+                    <div class="variant-item">
+                        <div>
+                            <span class="fw-bold d-block" style="font-size: 0.9rem;">{{ v.nombre_variante }}</span>
+                            <span class="text-muted small">{{ v.sku_variante or 'S/SKU' }}</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if v.cantidad_stock <= 0 %}bg-danger{% elif v.cantidad_stock < 5 %}bg-warning text-dark{% else %}bg-dark{% endif %} rounded-pill">
+                                {{ v.cantidad_stock }} uds
+                            </span>
+                            <div class="fw-bold mt-1" style="font-size: 0.85rem;">
+                                ${{ "{:,.0f}".format(v.precio_sugerido or p.precio_sugerido) }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <div class="card card-custom p-5 bg-white shadow-sm border-0 rounded-4">
+            <i class="fa-solid fa-box-open d-block fs-1 mb-3 opacity-25"></i>
+            <h3 class="fw-bold">No se encontraron productos</h3>
+            <p class="text-muted">Intenta con otros términos de búsqueda.</p>
+            <a href="{{ url_for('sales_bp.catalogo') }}" class="btn btn-outline-dark rounded-pill px-4 mt-2">Ver todo el catálogo</a>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

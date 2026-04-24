@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from '_macros.html' import render_pagination %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -57,7 +58,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for p in proveedores %}
+            {% for p in proveedores.items %}
             <tr>
                 <td class="fw-bold">{{ p.nombre }}</td>
                 <td>{{ p.empresa or '—' }}</td>
@@ -67,6 +68,15 @@
                     <a href="{{ url_for('providers_bp.cuenta', id=p.id) }}" class="btn btn-sm btn-blue rounded-pill fw-bold px-3">
                         <i class="fa-solid fa-file-invoice-dollar me-1"></i> Ver Cuenta
                     </a>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill ms-1" data-bs-toggle="modal" data-bs-target="#modalEditProveedor{{ p.id }}" title="Editar Proveedor">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <form action="{{ url_for('providers_bp.eliminar_proveedor', id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este proveedor? Se borrará todo su historial de facturas y pagos.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar Proveedor">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% else %}
@@ -80,4 +90,43 @@
         </tbody>
     </table>
 </div>
+
+<!-- Renderizar Paginación -->
+{{ render_pagination(proveedores, 'providers_bp.index') }}
+
+<!-- Modales de Edición de Proveedores -->
+{% for p in proveedores.items %}
+<div class="modal fade" id="modalEditProveedor{{ p.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-user-pen me-2" style="color: var(--brand-gold);"></i>Editar Proveedor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('providers_bp.editar_proveedor', id=p.id) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Nombre del Proveedor *</label>
+                <input type="text" name="nombre" class="form-control" value="{{ p.nombre }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Empresa</label>
+                <input type="text" name="empresa" class="form-control" value="{{ p.empresa or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Teléfono</label>
+                <input type="text" name="telefono" class="form-control" value="{{ p.telefono or '' }}">
+            </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-pink rounded-pill px-4 fw-bold text-dark"><i class="fa-solid fa-check me-1"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
 {% endblock %}

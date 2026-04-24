@@ -14,7 +14,8 @@ providers_bp = Blueprint('providers_bp', __name__)
 @admin_required
 def index():
     """Lista todos los proveedores registrados."""
-    proveedores = Provider.query.order_by(Provider.nombre).all()
+    page = request.args.get('page', 1, type=int)
+    proveedores = Provider.query.order_by(Provider.nombre).paginate(page=page, per_page=15, error_out=False)
     return render_template('providers/index.html', proveedores=proveedores)
 
 
@@ -163,3 +164,164 @@ def registrar_pago(id):
         flash('Error al registrar el abono en la base de datos.', 'danger')
 
     return redirect(url_for('providers_bp.cuenta', id=id))
+
+@providers_bp.route('/<int:proveedor_id>/invoice/<int:factura_id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def editar_factura(proveedor_id, factura_id):
+    """Edita una factura existente."""
+    factura = ProviderInvoice.query.filter_by(id=factura_id, provider_id=proveedor_id).first_or_404()
+    
+    monto_total = request.form.get('monto_total', type=float)
+    numero_factura = request.form.get('numero_factura', '').strip()
+    descripcion = request.form.get('descripcion', '').strip()
+
+    if not monto_total or monto_total <= 0:
+        flash('El monto de la factura debe ser mayor a $0.', 'danger')
+        return redirect(url_for('providers_bp.cuenta', id=proveedor_id))
+
+    try:
+        if 'comprobante' in request.files:
+            file = request.files['comprobante']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                filename = f"inv_{int(datetime.now().timestamp())}_{filename}"
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                
+                # Delete old file if exists
+                if factura.comprobante:
+                    old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], factura.comprobante)
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                
+                factura.comprobante = filename
+
+        factura.monto_total = monto_total
+        factura.numero_factura = numero_factura or None
+        factura.descripcion = descripcion or None
+        
+        db.session.commit()
+        flash('Factura actualizada exitosamente.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Error al actualizar la factura.', 'danger')
+
+    return redirect(url_for('providers_bp.cuenta', id=proveedor_id))
+
+@providers_bp.route('/<int:proveedor_id>/invoice/<int:factura_id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_factura(proveedor_id, factura_id):
+    """Elimina una factura existente."""
+    factura = ProviderInvoice.query.filter_by(id=factura_id, provider_id=proveedor_id).first_or_404()
+    
+    try:
+        # Delete file if exists
+        if factura.comprobante:
+            old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], factura.comprobante)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+                
+        db.session.delete(factura)
+        db.session.commit()
+        flash('Factura eliminada exitosamente.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Error al eliminar la factura.', 'danger')
+
+    return redirect(url_for('providers_bp.cuenta', id=proveedor_id))
+
+@providers_bp.route('/<int:proveedor_id>/payment/<int:pago_id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def editar_pago(proveedor_id, pago_id):
+    """Edita un abono existente."""
+    pago = ProviderPayment.query.filter_by(id=pago_id, provider_id=proveedor_id).first_or_404()
+    
+    monto = request.form.get('monto_abonado', type=float)
+    observacion = request.form.get('observacion', '').strip()
+
+    if not monto or monto <= 0:
+        flash('El monto del abono debe ser mayor a $0.', 'danger')
+        return redirect(url_for('providers_bp.cuenta', id=proveedor_id))
+
+    try:
+        pago.monto_abonado = monto
+        pago.observacion = observacion or None
+        db.session.commit()
+        flash('Abono actualizado exitosamente.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Error al actualizar el abono.', 'danger')
+
+    return redirect(url_for('providers_bp.cuenta', id=proveedor_id))
+
+@providers_bp.route('/<int:proveedor_id>/payment/<int:pago_id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_pago(proveedor_id, pago_id):
+    """Elimina un abono existente."""
+    pago = ProviderPayment.query.filter_by(id=pago_id, provider_id=proveedor_id).first_or_404()
+    
+    try:
+        db.session.delete(pago)
+        db.session.commit()
+        flash('Abono eliminado exitosamente.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Error al eliminar el abono.', 'danger')
+
+    return redirect(url_for('providers_bp.cuenta', id=proveedor_id))
+
+
+@providers_bp.route('/<int:id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def editar_proveedor(id):
+    """Edita los datos básicos de un proveedor."""
+    proveedor = Provider.query.get_or_404(id)
+    nombre = request.form.get('nombre', '').strip()
+    telefono = request.form.get('telefono', '').strip()
+    empresa = request.form.get('empresa', '').strip()
+
+    if not nombre:
+        flash('El nombre del proveedor es obligatorio.', 'danger')
+        return redirect(url_for('providers_bp.index'))
+
+    try:
+        proveedor.nombre = nombre
+        proveedor.telefono = telefono or None
+        proveedor.empresa = empresa or None
+        db.session.commit()
+        flash(f"Proveedor '{nombre}' actualizado exitosamente.", 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Error al actualizar el proveedor.', 'danger')
+
+    return redirect(url_for('providers_bp.index'))
+
+
+@providers_bp.route('/<int:id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_proveedor(id):
+    """Elimina un proveedor y todo su historial (facturas y pagos)."""
+    proveedor = Provider.query.get_or_404(id)
+    nombre = proveedor.nombre
+
+    try:
+        # Delete invoice files if they exist
+        for inv in proveedor.invoices:
+            if inv.comprobante:
+                path = os.path.join(current_app.config['UPLOAD_FOLDER'], inv.comprobante)
+                if os.path.exists(path):
+                    os.remove(path)
+        
+        db.session.delete(proveedor)
+        db.session.commit()
+        flash(f"Proveedor '{nombre}' eliminado exitosamente.", 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Error al eliminar el proveedor. Verifique que no tenga dependencias activas.', 'danger')
+
+    return redirect(url_for('providers_bp.index'))

@@ -213,7 +213,7 @@
                     <thead>
                         <tr>
                             <th class="ps-3">Producto</th>
-                            <th class="text-center" width="100">Variante</th>
+                            <th class="text-center" width="180">Variante</th>
                             <th class="text-center" width="110">Cantidad</th>
                             <th class="text-end" width="140">Precio U.</th>
                             <th class="text-end" width="110">Subtotal</th>
@@ -235,7 +235,7 @@
             <div class="pos-status-bar m-3 d-flex justify-content-between align-items-center" id="status_bar" style="display:none !important;">
                 <span><i class="fa-solid fa-boxes-stacked me-1"></i> Items: <strong id="status_items">0</strong></span>
                 <span><i class="fa-solid fa-tags me-1"></i> Líneas: <strong id="status_lines">0</strong></span>
-                <span>Costo Estimado: <strong id="status_cost">$0.00</strong></span>
+                
             </div>
         </div>
     </div>
@@ -254,13 +254,10 @@
             
             <div class="d-flex justify-content-between mb-2 align-items-end">
                 <span class="text-muted fw-bold align-self-center">Total a Cobrar:</span>
-                <span class="pos-total-badge" id="total_amount">$0.00</span>
+                <span class="pos-total-badge" id="total_amount">$0</span>
             </div>
 
-            <div class="d-flex justify-content-between mb-4">
-                <span class="text-muted small">Utilidad Estimada:</span>
-                <span class="fw-bold small" id="utilidad_estimada" style="color: var(--brand-dark-gold);">$0.00</span>
-            </div>
+            
 
             <hr class="mb-4" style="border-color: var(--brand-champagne);">
 
@@ -291,9 +288,8 @@
                 <select id="metodo-pago" class="form-select border-0 shadow-sm bg-light" style="cursor: pointer; border-radius: 10px; padding: 12px 16px;">
                     <option value="efectivo">💵 Efectivo</option>
                     <option value="nequi">📱 Nequi</option>
+                    <option value="daviplata">📲 Daviplata</option>
                     <option value="bancolombia">🏦 Bancolombia</option>
-                    <option value="tarjeta">💳 Tarjeta</option>
-                    <option value="binance">🪙 Binance / Cripto</option>
                 </select>
             </div>
 
@@ -344,11 +340,11 @@
                 <div class="row g-3 mb-3">
                     <div class="col-6">
                         <label class="form-label fw-bold small text-brand-black">Costo de Compra ($)</label>
-                        <input type="number" step="0.01" id="ext_costo" class="form-control border-0 bg-light shadow-sm" placeholder="0.00" style="border-radius: 10px;">
+                        <input type="text"  id="ext_costo" class="currency-mask form-control border-0 bg-light shadow-sm" placeholder="0" style="border-radius: 10px;">
                     </div>
                     <div class="col-6">
                         <label class="form-label fw-bold small text-brand-black">Precio de Venta ($)</label>
-                        <input type="number" step="0.01" id="ext_precio" class="form-control border-0 bg-light shadow-sm" placeholder="0.00" style="border-radius: 10px;">
+                        <input type="text"  id="ext_precio" class="currency-mask form-control border-0 bg-light shadow-sm" placeholder="0" style="border-radius: 10px;">
                     </div>
                 </div>
                 <div class="mb-0">
@@ -370,6 +366,9 @@
 
 <!-- ═══════════ MOTOR JAVASCRIPT VANILLA (POS Terminal Engine) ═══════════ -->
 <script>
+    function formatCOP(amount) {
+        return Math.round(amount).toLocaleString("en-US");
+    }
     // ── Estado Global ──
     let carrito = [];
     let contadorExternos = 0;
@@ -416,10 +415,16 @@
 
             // ── Producto CON VARIANTES ──
             if (producto.tiene_variantes) {
-                // Verificar si ya existe una fila para este producto padre
                 const existente = carrito.find(item => item.id === producto.id && !item.es_externo);
                 
+                // Si existe, preguntamos al usuario si desea sumar o agregar nueva fila
+                let sumarAExistente = false;
                 if (existente) {
+                    const msg = `"${producto.nombre}" ya está en el carrito.\n\n¿Deseas SUMAR 1 a la subcategoría seleccionada actualmente?\n\n(Haz clic en CANCELAR si quieres agregar una NUEVA FILA para una subcategoría distinta)`;
+                    sumarAExistente = confirm(msg);
+                }
+
+                if (sumarAExistente) {
                     // Incrementar cantidad (verificar stock de la variante seleccionada)
                     const varSeleccionada = existente.variantes.find(v => v.id === existente.variant_id);
                     if (varSeleccionada && existente.cantidad + 1 > varSeleccionada.cantidad_stock) {
@@ -428,7 +433,7 @@
                         existente.cantidad++;
                     }
                 } else {
-                    // Filtrar solo variantes con stock > 0 para el select
+                    // Agregar como nueva fila (o es el primero)
                     const variantesDisponibles = producto.variantes.filter(v => v.cantidad_stock > 0);
                     if (variantesDisponibles.length === 0) {
                         mostrarToast('error', `Todas las variantes de "${producto.nombre}" están agotadas.`);
@@ -502,8 +507,8 @@
     // ── Producto Externo (Modal) ──
     function agregarProductoExterno() {
         const nombre = document.getElementById('ext_nombre').value.trim();
-        const costo = parseFloat(document.getElementById('ext_costo').value) || 0;
-        const precio = parseFloat(document.getElementById('ext_precio').value) || 0;
+        const costo = parseCurrencyStr(document.getElementById('ext_costo').value) || 0;
+        const precio = parseCurrencyStr(document.getElementById('ext_precio').value) || 0;
         const cantidad = parseInt(document.getElementById('ext_cantidad').value) || 1;
 
         if (!nombre) return mostrarToast('error', 'Ingresa el nombre del producto externo.');
@@ -547,7 +552,7 @@
         const item = carrito[index];
         
         if (campo === 'cantidad') {
-            const nueva = parseInt(valor);
+            const nueva = parseCurrencyStr(valor);
             if (nueva <= 0) {
                 mostrarToast('warn', 'La cantidad no puede ser 0 o negativa. Usa el botón borrar.');
                 renderizarCarrito();
@@ -562,9 +567,9 @@
         }
 
         if (campo === 'precio_final') {
-            const nuevoPrecio = parseFloat(valor);
+            const nuevoPrecio = parseCurrencyStr(valor);
             if (!item.es_externo && nuevoPrecio < item.precio_limite) {
-                mostrarToast('error', `¡BLOQUEADO! Precio ($${nuevoPrecio.toFixed(2)}) inferior al mínimo autorizado ($${item.precio_limite.toFixed(2)}).`);
+                mostrarToast('error', `¡BLOQUEADO! Precio ($${nuevoPrecio}) inferior al mínimo autorizado ($${item.precio_limite}).`);
                 renderizarCarrito();
                 return;
             }
@@ -606,7 +611,7 @@
         const tbody = document.getElementById('cart_body');
         const totalAmountEl = document.getElementById('total_amount');
         const totalItemsEl = document.getElementById('total_items');
-        const utilidadEl = document.getElementById('utilidad_estimada');
+        
         const statusBar = document.getElementById('status_bar');
         
         tbody.innerHTML = '';
@@ -621,9 +626,9 @@
                     <p class="text-muted fw-semibold m-0">Escanea un producto para comenzar</p>
                 </td>
             </tr>`;
-            totalAmountEl.innerText = '$0.00';
+            totalAmountEl.innerText = '$0';
             totalItemsEl.innerText = '0';
-            utilidadEl.innerText = '$0.00';
+            
             statusBar.style.display = 'none !important';
             statusBar.classList.add('d-none');
             actualizarIndicadorMultipago();
@@ -662,7 +667,7 @@
                     <div class="fw-bold text-brand-black" style="font-size: 0.9rem;">${item.nombre}</div>
                     <small class="text-muted">${item.sku}${item.es_externo ? '' : ' · Stock: ' + item.cantidad_stock}</small>
                 </td>
-                <td class="text-center" width="100">
+                <td class="text-center" width="180">
                     ${variantCell}
                 </td>
                 <td width="110">
@@ -674,14 +679,14 @@
                 <td width="140">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light border-0" style="border-radius: 8px 0 0 8px;">$</span>
-                        <input type="number" step="0.01" class="form-control text-end border-0 bg-light" 
-                               value="${item.precio_final.toFixed(2)}" 
+                        <input type="text" class="form-control text-end border-0 bg-light currency-mask" 
+                               value="${formatCOP(item.precio_final)}" 
                                onchange="actualizarItem(${index}, 'precio_final', this.value)"
                                style="border-radius: 0 8px 8px 0;">
                     </div>
                 </td>
                 <td class="text-end fw-bold text-brand-black" width="110">
-                    $${subtotal.toFixed(2)}
+                    $${formatCOP(subtotal)}
                 </td>
                 <td class="text-center" width="50">
                     <button class="btn btn-sm text-danger p-0" onclick="eliminarItem(${index})" title="Eliminar" style="opacity: 0.6; transition: opacity 0.15s;">
@@ -693,14 +698,14 @@
         });
 
         // Actualizar DOM
-        totalAmountEl.innerText = `$${granTotal.toFixed(2)}`;
+        totalAmountEl.innerText = `$${formatCOP(granTotal)}`;
         totalItemsEl.innerText = totalItems;
-        utilidadEl.innerText = `$${(granTotal - costoTotal).toFixed(2)}`;
+        
 
         // Status Bar
         document.getElementById('status_items').innerText = totalItems;
         document.getElementById('status_lines').innerText = carrito.length;
-        document.getElementById('status_cost').innerText = `$${costoTotal.toFixed(2)}`;
+        
 
         // Micro-animación en el total
         totalAmountEl.classList.add('animado');
@@ -731,13 +736,12 @@
             <select class="form-select form-select-sm flex-grow-1 border-0 bg-white shadow-sm pago-metodo" style="border-radius: 8px; min-width: 120px;">
                 <option value="efectivo">💵 Efectivo</option>
                 <option value="nequi">📱 Nequi</option>
+                <option value="daviplata">📲 Daviplata</option>
                 <option value="bancolombia">🏦 Bancolombia</option>
-                <option value="tarjeta">💳 Tarjeta</option>
-                <option value="binance">🪙 Binance</option>
             </select>
             <div class="input-group input-group-sm" style="max-width: 150px;">
                 <span class="input-group-text border-0 bg-white">$</span>
-                <input type="number" step="0.01" class="form-control border-0 bg-white text-end pago-monto" placeholder="0.00" 
+                <input type="text"  class="currency-mask form-control border-0 bg-white text-end pago-monto" placeholder="0" 
                        oninput="actualizarIndicadorMultipago()" style="border-radius: 0 8px 8px 0;">
             </div>
             <button type="button" class="btn btn-sm text-danger p-1" onclick="this.parentElement.remove(); actualizarIndicadorMultipago();" title="Quitar">
@@ -773,10 +777,10 @@
             badge.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i> Pagos cuadrados correctamente';
         } else if (diferencia > 0) {
             badge.className = 'badge rounded-pill px-3 py-2 fw-bold badge-restante-warn';
-            badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Faltan: $${diferencia.toFixed(2)}`;
+            badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Faltan: $${formatCOP(diferencia)}`;
         } else {
             badge.className = 'badge rounded-pill px-3 py-2 fw-bold badge-restante-warn';
-            badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Excedente: $${Math.abs(diferencia).toFixed(2)}`;
+            badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Excedente: $${formatCOP(Math.abs(diferencia))}`;
         }
     }
 
@@ -787,7 +791,7 @@
     function calcularTotalPagos() {
         const inputs = document.querySelectorAll('.pago-monto');
         let total = 0;
-        inputs.forEach(inp => { total += parseFloat(inp.value) || 0; });
+        inputs.forEach(inp => { total += parseCurrencyStr(inp.value) || 0; });
         return total;
     }
 
@@ -799,7 +803,7 @@
             const entries = document.querySelectorAll('.pago-entry');
             entries.forEach(entry => {
                 const metodo = entry.querySelector('.pago-metodo').value;
-                const monto = parseFloat(entry.querySelector('.pago-monto').value) || 0;
+                const monto = parseCurrencyStr(entry.querySelector('.pago-monto').value) || 0;
                 if (monto > 0) {
                     pagos.push({ metodo, monto });
                 }
@@ -826,7 +830,7 @@
             
             if (Math.abs(granTotal - totalPagos) > 0.01) {
                 const dif = granTotal - totalPagos;
-                return mostrarToast('error', `Los pagos no cuadran. Diferencia: $${dif.toFixed(2)}. Ajusta los montos.`);
+                return mostrarToast('error', `Los pagos no cuadran. Diferencia: $${formatCOP(dif)}. Ajusta los montos.`);
             }
         }
 
@@ -873,7 +877,7 @@
                     mostrarToast('warn', '⚠️ Chrome bloqueó la pestaña del recibo. Permite las ventanas emergentes (pop-ups).');
                 }
 
-                alert(`✅ ¡Cobro Procesado! ID: ${data.sale_id}\nTotal: $${parseFloat(data.total).toFixed(2)}`);
+                alert(`✅ ¡Cobro Procesado! ID: ${data.sale_id}\nTotal: $${formatCOP(parseFloat(data.total))}`);
                 
                 // Purgar carrito
                 carrito = [];

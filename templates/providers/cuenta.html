@@ -18,13 +18,13 @@
     <div class="col-md-4">
         <div class="card card-custom p-4 h-100 shadow-sm border-0 rounded-4">
             <p class="text-muted small fw-bold text-uppercase mb-1"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Total Facturado</p>
-            <h3 class="fw-bolder text-brand-black">${{ "{:,.2f}".format(total_facturas|default(0)) }}</h3>
+            <h3 class="fw-bolder text-brand-black">${{ "{:,.0f}".format(total_facturas|default(0)) }}</h3>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card card-custom p-4 h-100 shadow-sm border-0 rounded-4">
             <p class="text-muted small fw-bold text-uppercase mb-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Total Abonos Realizados</p>
-            <h3 class="fw-bolder" style="color: #16a34a;">${{ "{:,.2f}".format(total_abonos|default(0)) }}</h3>
+            <h3 class="fw-bolder" style="color: #16a34a;">${{ "{:,.0f}".format(total_abonos|default(0)) }}</h3>
         </div>
     </div>
     <div class="col-md-4">
@@ -34,7 +34,7 @@
                 <i class="fa-solid fa-triangle-exclamation me-1"></i> Saldo Pendiente
             </p>
             <h3 class="fw-bolder" style="color: #dc2626;">
-                ${{ "{:,.2f}".format(saldo_pendiente|default(0)) }}
+                ${{ "{:,.0f}".format(saldo_pendiente|default(0)) }}
             </h3>
         </div>
         {% else %}
@@ -43,7 +43,7 @@
                 <i class="fa-solid fa-circle-check me-1"></i> Saldo Pendiente
             </p>
             <h3 class="fw-bolder" style="color: #16a34a;">
-                ${{ "{:,.2f}".format(saldo_pendiente|default(0)) }}
+                ${{ "{:,.0f}".format(saldo_pendiente|default(0)) }}
             </h3>
         </div>
         {% endif %}
@@ -70,6 +70,7 @@
                         <th>Descripción</th>
                         <th>Ver</th>
                         <th class="text-end">Monto</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -87,11 +88,22 @@
                             <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-end fw-bold">${{ "{:,.2f}".format(f.monto_total) }}</td>
+                        <td class="text-end fw-bold">${{ "{:,.0f}".format(f.monto_total) }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill me-1" data-bs-toggle="modal" data-bs-target="#modalEditFactura{{ f.id }}" title="Editar Factura">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <form action="{{ url_for('providers_bp.eliminar_factura', proveedor_id=proveedor.id, factura_id=f.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de que desea eliminar esta factura?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar Factura">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             <i class="fa-solid fa-file-circle-xmark d-block fs-3 mb-2" style="color: var(--brand-champagne);"></i>
                             Sin facturas registradas.
                         </td>
@@ -117,18 +129,30 @@
                         <th>Fecha</th>
                         <th class="text-end">Monto</th>
                         <th>Observación</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in pagos_ordenados %}
                     <tr>
                         <td class="text-muted small">{{ p.fecha_pago.strftime('%d/%m/%Y') if p.fecha_pago else '—' }}</td>
-                        <td class="text-end fw-bold" style="color: #16a34a;">${{ "{:,.2f}".format(p.monto_abonado) }}</td>
+                        <td class="text-end fw-bold" style="color: #16a34a;">${{ "{:,.0f}".format(p.monto_abonado) }}</td>
                         <td class="small">{{ p.observacion or '—' }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill me-1" data-bs-toggle="modal" data-bs-target="#modalEditAbono{{ p.id }}" title="Editar Abono">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <form action="{{ url_for('providers_bp.eliminar_pago', proveedor_id=proveedor.id, pago_id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este abono?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar Abono">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="3" class="text-center text-muted py-4">
+                        <td colspan="4" class="text-center text-muted py-4">
                             <i class="fa-solid fa-piggy-bank d-block fs-3 mb-2" style="color: var(--brand-champagne);"></i>
                             Sin abonos registrados.
                         </td>
@@ -155,7 +179,7 @@
         <div class="modal-body">
             <div class="mb-3">
                 <label class="form-label fw-bold text-brand-black small">Monto Total de Factura ($) *</label>
-                <input type="number" name="monto_total" class="form-control" min="0.01" step="0.01" placeholder="Ej: 1250000" required>
+                <input type="text" name="monto_total" class="form-control currency-mask" placeholder="Ej: 1,250,000" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold text-brand-black small">Número de Factura (Opcional)</label>
@@ -192,7 +216,7 @@
         <div class="modal-body">
             <div class="mb-3">
                 <label class="form-label fw-bold text-brand-black small">Monto del Abono ($) *</label>
-                <input type="number" name="monto_abonado" class="form-control" min="0.01" step="0.01" placeholder="Ej: 500000.00" required>
+                <input type="text" name="monto_abonado" class="form-control currency-mask" placeholder="Ej: 500,000" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold text-brand-black small">Observación</label>
@@ -207,4 +231,78 @@
     </div>
   </div>
 </div>
+
+<!-- Modales de Edición de Facturas -->
+{% for f in facturas_ordenadas %}
+<div class="modal fade" id="modalEditFactura{{ f.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-pen me-2" style="color: var(--brand-gold);"></i>Editar Factura</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('providers_bp.editar_factura', proveedor_id=proveedor.id, factura_id=f.id) }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Monto Total de Factura ($) *</label>
+                <input type="text" name="monto_total" class="form-control currency-mask" value="{{ "{:,.0f}".format(f.monto_total) }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Número de Factura (Opcional)</label>
+                <input type="text" name="numero_factura" class="form-control" value="{{ f.numero_factura or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Descripción / Observación</label>
+                <textarea name="descripcion" class="form-control" rows="2">{{ f.descripcion or '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Reemplazar Foto de Factura (Opcional)</label>
+                <input type="file" name="comprobante" class="form-control" accept="image/*, application/pdf">
+                {% if f.comprobante %}
+                <small class="text-muted d-block mt-1">Actualmente tiene un archivo adjunto. Subir uno nuevo lo reemplazará.</small>
+                {% endif %}
+            </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-pink rounded-pill px-4 fw-bold text-dark"><i class="fa-solid fa-check me-1"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Modales de Edición de Abonos -->
+{% for p in pagos_ordenados %}
+<div class="modal fade" id="modalEditAbono{{ p.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-pen me-2" style="color: #16a34a;"></i>Editar Abono</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('providers_bp.editar_pago', proveedor_id=proveedor.id, pago_id=p.id) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Monto del Abono ($) *</label>
+                <input type="text" name="monto_abonado" class="form-control currency-mask" value="{{ "{:,.0f}".format(p.monto_abonado) }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-brand-black small">Observación</label>
+                <input type="text" name="observacion" class="form-control" value="{{ p.observacion or '' }}">
+            </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn rounded-pill px-4 fw-bold" style="background-color: #16a34a; color: white;"><i class="fa-solid fa-check me-1"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
 {% endblock %}

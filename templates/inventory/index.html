@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from '_macros.html' import render_pagination %}
 
 {% block content %}
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
@@ -15,6 +16,38 @@
     </div>
 </div>
 
+<!-- Tarjetas Dinámicas de Resumen de Inventario -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card card-custom h-100" style="border-left: 5px solid var(--brand-blue) !important;">
+            <div class="card-body">
+                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-boxes-stacked me-1"></i> Cantidad Total de Productos</p>
+                <h3 class="fw-bolder m-0" style="color: var(--brand-blue);">{{ "{:,.0f}".format(total_productos_stock) }} <small class="fs-6 text-muted fw-normal">uds</small></h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card card-custom h-100" style="border-left: 5px solid var(--brand-pink) !important;">
+            <div class="card-body">
+                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-money-bill-trend-up me-1"></i> Costo Total del Inventario</p>
+                <h3 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ "{:,.0f}".format(costo_total_inventario) }}</h3>
+                <small class="text-muted" style="font-size: 0.75rem;">Valor invertido (Costo Bodega)</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card card-custom h-100" style="border-left: 5px solid #28a745 !important;">
+            <div class="card-body">
+                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-tags me-1"></i> Total Venta (Precio Sugerido)</p>
+                <h3 class="fw-bolder m-0 text-success">${{ "{:,.0f}".format(valor_venta_inventario) }}</h3>
+                <small class="text-muted" style="font-size: 0.75rem;">Proyección de venta esperada</small>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card card-custom p-0 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover table-custom mb-0">
@@ -26,34 +59,81 @@
                     <th width="150" class="text-end">PRECIO COSTO</th>
                     <th width="150" class="text-end">PRECIO MÍNIMO</th>
                     <th width="150" class="text-end pe-4">PRECIO SUGERIDO</th>
-                    <th width="140" class="text-center">ACCIONES</th>
+                    <th width="200" class="text-center">ACCIONES</th>
                 </tr>
             </thead>
             <tbody>
-                {% for p in productos %}
+                {% for p in productos.items %}
                 <tr>
                     <td class="text-muted"><small><strong>{{ p.sku }}</strong></small></td>
                     <td class="fw-semibold text-brand-black">{{ p.nombre }}</td>
                     <td>
-                        <!-- Regla Estricta: Badge rojo si el stock <= 10 -->
-                        {% if p.cantidad_stock <= 10 %}
-                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ p.cantidad_stock }} (Stock Bajo)</span>
+                        <!-- Regla Estricta: Badge rojo si el stock <= 5 -->
+                        {% if p.total_stock <= 5 %}
+                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ p.total_stock }} (Stock Bajo)</span>
                         {% else %}
                             <!-- Badge en Rosa Pastel para stock normal -->
-                            <span class="badge bg-brand-pink text-dark rounded-pill px-3 py-2 border">{{ p.cantidad_stock }} uds</span>
+                            <span class="badge bg-brand-pink text-dark rounded-pill px-3 py-2 border">{{ p.total_stock }} uds</span>
                         {% endif %}
                     </td>
-                    <td class="text-end fw-bold" style="color: var(--brand-pink);">${{ "%.2f"|format(p.precio_costo) }}</td>
-                    <td class="text-end text-muted fw-bold">${{ "%.2f"|format(p.precio_minimo) }}</td>
-                    <td class="text-end fw-bold text-brand-black pe-4">${{ "%.2f"|format(p.precio_sugerido) }}</td>
+                    <td class="text-end fw-bold" style="color: var(--brand-pink);">
+                        {% if p.rango_costos %}
+                            {% if p.rango_costos is number %}
+                                ${{ "{:,.0f}".format(p.rango_costos) }}
+                            {% else %}
+                                <small class="text-muted d-block" style="font-size: 0.6rem;">Desde</small>
+                                ${{ "{:,.0f}".format(p.rango_costos[0]) }}
+                            {% endif %}
+                        {% else %}
+                            ${{ "{:,.0f}".format(p.precio_costo) }}
+                        {% endif %}
+                    </td>
+                    <td class="text-end text-muted fw-bold">
+                        {% if p.rango_minimos %}
+                            {% if p.rango_minimos is number %}
+                                ${{ "{:,.0f}".format(p.rango_minimos) }}
+                            {% else %}
+                                <small class="text-muted d-block" style="font-size: 0.6rem;">Desde</small>
+                                ${{ "{:,.0f}".format(p.rango_minimos[0]) }}
+                            {% endif %}
+                        {% else %}
+                            ${{ "{:,.0f}".format(p.precio_minimo) }}
+                        {% endif %}
+                    </td>
+                    <td class="text-end fw-bold text-brand-black pe-4">
+                        {% if p.rango_precios %}
+                            {% if p.rango_precios is number %}
+                                ${{ "{:,.0f}".format(p.rango_precios) }}
+                            {% else %}
+                                <small class="text-muted d-block" style="font-size: 0.6rem;">Desde</small>
+                                ${{ "{:,.0f}".format(p.rango_precios[0]) }}
+                            {% endif %}
+                        {% else %}
+                            ${{ "{:,.0f}".format(p.precio_sugerido) }}
+                        {% endif %}
+                    </td>
                     <td class="text-center">
-                        <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-sm btn-outline-info rounded-pill hover-primary me-1" title="Ver Detalle">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <!-- Enlace dinámico con ID insertado (Jinja2 url_for) -->
-                        <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-sm text-secondary hover-primary" title="Editar">
-                            <i class="fa-solid fa-pen"></i>
-                        </a>
+                        <div class="d-flex justify-content-center align-items-center gap-2">
+                            <!-- BOTÓN DE SUBCATEGORÍAS -->
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 text-nowrap" title="Gestionar Subcategorías / Variantes" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
+                                <i class="fa-solid fa-sitemap me-1"></i> Subcategorías
+                            </button>
+                            
+                            <div class="d-flex align-items-center gap-1">
+                                <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-outline-info border-0 shadow-sm" title="Ver Detalle" style="width: 34px; height: 34px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-outline-secondary border-0 shadow-sm bg-white" title="Editar" style="width: 34px; height: 34px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <form action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('¿Está seguro de eliminar este producto? Esta acción no se puede deshacer.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-outline-danger border-0 shadow-sm bg-white" title="Eliminar" style="width: 34px; height: 34px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
@@ -70,6 +150,13 @@
     </div>
 </div>
 
+<!-- Renderizar Paginación -->
+{{ render_pagination(productos, 'inventory_bp.index') }}
+
+{% for p in productos.items %}
+    {% include 'inventory/modal_variantes.html' %}
+{% endfor %}
+
 <!-- Modal: Carga Masiva Inventario -->
 <div class="modal fade" id="modalCargaMasiva" tabindex="-1" aria-labelledby="modalCargaMasivaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -85,7 +172,8 @@
                     
                     <div class="alert alert-info border-0 rounded-3 mb-4">
                         <h6 class="fw-bold mb-1 small"><i class="fa-solid fa-circle-info me-1"></i>Estructura requerida:</h6>
-                        <p class="mb-0 small">nombre, sku, cantidad_stock, precio_costo, precio_minimo, precio_sugerido, observacion.</p>
+                        <p class="mb-1 small">nombre, sku, cantidad_stock, precio_costo, precio_minimo, precio_sugerido, observacion, <strong>nombre_variante</strong>.</p>
+                        <p class="mb-0 small text-muted fst-italic">* Usa <strong>nombre_variante</strong> (opcional) para cargar subcategorías como "Rojo - Talla M". Si el SKU ya existe, se agruparán bajo el mismo producto padre.</p>
                     </div>
 
                     <div class="mb-4">

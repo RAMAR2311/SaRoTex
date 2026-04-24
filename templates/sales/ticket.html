@@ -197,7 +197,7 @@
                         {% endif %}
                     {% endif %}
                 </td>
-                <td class="col-sub">${{ "%.2f"|format(detalle.precio_venta_final * detalle.cantidad_vendida) }}</td>
+                <td class="col-sub">${{ "{:,.0f}".format(detalle.precio_venta_final * detalle.cantidad_vendida) }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -206,7 +206,7 @@
     <div class="totals">
         <div class="total-row">
             <span>TOTAL:</span>
-            <span>${{ "%.2f"|format(venta.monto_total) }}</span>
+            <span>${{ "{:,.0f}".format(venta.monto_total) }}</span>
         </div>
     </div>
 
@@ -217,7 +217,7 @@
         {% for pago in venta.pagos %}
         <div class="pago-row">
             <span class="pago-metodo">{{ pago.metodo_pago }}</span>
-            <span>${{ "%.2f"|format(pago.monto) }}</span>
+            <span>${{ "{:,.0f}".format(pago.monto) }}</span>
         </div>
         {% endfor %}
     </div>

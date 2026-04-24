@@ -35,19 +35,19 @@
                 <tbody>
                     <tr>
                         <td width="70%">Ventas Validadas en Efectivo</td>
-                        <td width="30%" class="text-end">${{ "%.2f"|format(datos.ventas_efectivo) }}</td>
+                        <td width="30%" class="text-end">${{ "{:,.0f}".format(datos.ventas_efectivo) }}</td>
                     </tr>
                     <tr>
                         <td>Ventas por Nequi</td>
-                        <td class="text-end">${{ "%.2f"|format(datos.ventas_nequi) }}</td>
+                        <td class="text-end">${{ "{:,.0f}".format(datos.ventas_nequi) }}</td>
                     </tr>
                     <tr>
                         <td>Ventas por Bancolombia</td>
-                        <td class="text-end">${{ "%.2f"|format(datos.ventas_bancolombia) }}</td>
+                        <td class="text-end">${{ "{:,.0f}".format(datos.ventas_bancolombia) }}</td>
                     </tr>
                     <tr class="border-top text-brand-black fw-bolder bg-light">
                         <td class="p-3">Σ TOTAL INGRESOS (VENTAS)</td>
-                        <td class="text-end p-3 text-success fs-5">${{ "%.2f"|format(datos.total_ingresos) }}</td>
+                        <td class="text-end p-3 text-success fs-5">${{ "{:,.0f}".format(datos.total_ingresos) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -60,27 +60,27 @@
                 <tbody>
                     <tr>
                         <td width="70%">Costos Directos del Producto Vendido (COGS)</td>
-                        <td width="30%" class="text-danger text-end">-${{ "%.2f"|format(datos.costos_directos) }}</td>
+                        <td width="30%" class="text-danger text-end">-${{ "{:,.0f}".format(datos.costos_directos) }}</td>
                     </tr>
                     <tr>
                         <td>Gastos Diarios / Operacionales (Salidas de Caja)</td>
-                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.gastos_operacionales) }}</td>
+                        <td class="text-danger text-end">-${{ "{:,.0f}".format(datos.gastos_operacionales) }}</td>
                     </tr>
                     <tr>
                         <td>Cargos a Nómina / Personal</td>
-                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.total_pagos_nomina) }}</td>
+                        <td class="text-danger text-end">-${{ "{:,.0f}".format(datos.total_pagos_nomina) }}</td>
                     </tr>
                     <tr>
                         <td>Abonos Realizados a Proveedores</td>
-                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.total_pagos_proveedores) }}</td>
+                        <td class="text-danger text-end">-${{ "{:,.0f}".format(datos.total_pagos_proveedores) }}</td>
                     </tr>
                     <tr>
                         <td>Costos Indirectos Permanentes</td>
-                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.costos_indirectos) }}</td>
+                        <td class="text-danger text-end">-${{ "{:,.0f}".format(datos.costos_indirectos) }}</td>
                     </tr>
                     <tr class="border-top text-brand-black fw-bolder bg-light">
                         <td class="p-3">Σ TOTAL SALIDAS Y DEDUCCIONES</td>
-                        <td class="text-danger text-end p-3 fs-5">-${{ "%.2f"|format(datos.total_salidas) }}</td>
+                        <td class="text-danger text-end p-3 fs-5">-${{ "{:,.0f}".format(datos.total_salidas) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -94,7 +94,7 @@
                     {% if balance_positivo %}Ganancia Neta / Utilidad del Ejercicio{% else %}Pérdida Neta Registrada{% endif %}
                 </small>
                 <h1 class="fw-bolder mb-0 {% if balance_positivo %}text-success{% else %}text-danger{% endif %}" style="font-size: 3rem; letter-spacing: -2px;">
-                    ${{ "%.2f"|format(datos.balance_neto) }}
+                    ${{ "{:,.0f}".format(datos.balance_neto) }}
                 </h1>
             </div>
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from '_macros.html' import render_pagination %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -16,7 +17,7 @@
                 <h5 class="text-brand-black fw-bold mb-0">Total Gastos Diarios (Mes)</h5>
                 <i class="fa-solid fa-cart-shopping fs-2" style="color: var(--brand-blue);"></i>
             </div>
-            <h2 class="fw-bolder m-0">${{ "%.2f"|format(total_diarios) }}</h2>
+            <h2 class="fw-bolder m-0">${{ "{:,.0f}".format(total_diarios) }}</h2>
             <p class="text-muted small mt-2 m-0">Operativos: comida, transportes, aseo.</p>
         </div>
     </div>
@@ -26,7 +27,7 @@
                 <h5 class="text-brand-black fw-bold mb-0">Total Costos Indirectos (Mes)</h5>
                 <i class="fa-solid fa-building-columns fs-2" style="color: var(--brand-pink);"></i>
             </div>
-            <h2 class="fw-bolder m-0">${{ "%.2f"|format(total_indirectos) }}</h2>
+            <h2 class="fw-bolder m-0">${{ "{:,.0f}".format(total_indirectos) }}</h2>
             <p class="text-muted small mt-2 m-0">Fijos: arriendo, nómina, servicios.</p>
         </div>
     </div>
@@ -68,7 +69,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label fw-bold text-brand-black">Monto ($)</label>
-                <input type="number" step="0.01" min="0" name="monto" class="form-control bg-light border-0" required>
+                <input type="text"  min="0" name="monto" class="currency-mask form-control bg-light border-0" required>
             </div>
             <div class="col-md-2">
                 <label class="form-label fw-bold text-brand-black">Fecha</label>
@@ -79,6 +80,7 @@
                 <select name="metodo_pago" class="form-select bg-light border-0" required>
                     <option value="efectivo" selected>Efectivo</option>
                     <option value="nequi">Nequi</option>
+                    <option value="daviplata">Daviplata</option>
                     <option value="bancolombia">Bancolombia</option>
                 </select>
             </div>
@@ -105,11 +107,14 @@
                         <th>CATEGORÍA</th>
                         <th>DESCRIPCIÓN</th>
                         <th class="text-center">MÉTODO</th>
-                        <th class="text-end pe-4">MONTO</th>
+                        <th class="text-end">MONTO</th>
+                        {% if current_user.rol == 'admin' %}
+                        <th class="text-center pe-4">ACCIONES</th>
+                        {% endif %}
                     </tr>
             </thead>
             <tbody>
-                {% for gasto in gastos %}
+                {% for gasto in gastos.items %}
                 <tr>
                     <td class="ps-4 text-muted"><small>{{ gasto.fecha_gasto.strftime('%d/%m/%Y') }}</small></td>
                     <td><span class="text-brand-black fw-semibold"><i class="fa-solid fa-user-tie text-muted me-1"></i>{{ gasto.usuario.nombre }}</span></td>
@@ -131,11 +136,21 @@
                             <span class="badge bg-warning bg-opacity-10 text-dark border border-warning rounded-pill px-2 py-1"><i class="fa-solid fa-building-columns me-1"></i>Bancolombia</span>
                         {% endif %}
                     </td>
-                    <td class="text-end pe-4 fw-bolder text-brand-black">${{ "%.2f"|format(gasto.monto) }}</td>
+                    <td class="text-end fw-bolder text-brand-black {% if current_user.rol != 'admin' %}pe-4{% endif %}">${{ "{:,.0f}".format(gasto.monto) }}</td>
+                    {% if current_user.rol == 'admin' %}
+                    <td class="text-center pe-4">
+                        <form action="{{ url_for('gastos_bp.eliminar_gasto', id=gasto.id) }}" method="POST" onsubmit="return confirm('¿Está seguro de eliminar este registro de gasto?');" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0;">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="{% if current_user.rol == 'admin' %}8{% else %}7{% endif %}" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-wallet fs-2 mb-3 text-brand-blue opacity-50"></i>
                         <p class="mb-0">No se han registrado salidas de dinero este mes.</p>
                     </td>
@@ -145,4 +160,8 @@
         </table>
     </div>
 </div>
+
+<!-- Renderizar Paginación -->
+{{ render_pagination(gastos, 'gastos_bp.index') }}
+
 {% endblock %}
