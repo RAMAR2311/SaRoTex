@@ -22,7 +22,7 @@
         <div class="card card-custom h-100" style="border-left: 5px solid var(--brand-blue) !important;">
             <div class="card-body">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-boxes-stacked me-1"></i> Cantidad Total de Productos</p>
-                <h3 class="fw-bolder m-0" style="color: var(--brand-blue);">{{ "{:,.0f}".format(total_productos_stock) }} <small class="fs-6 text-muted fw-normal">uds</small></h3>
+                <h3 class="fw-bolder m-0" style="color: var(--brand-blue);">{{ "{:,.0f}".format(total_productos_stock | default(0)) }} <small class="fs-6 text-muted fw-normal">uds</small></h3>
             </div>
         </div>
     </div>
@@ -31,7 +31,7 @@
         <div class="card card-custom h-100" style="border-left: 5px solid var(--brand-pink) !important;">
             <div class="card-body">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-money-bill-trend-up me-1"></i> Costo Total del Inventario</p>
-                <h3 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ "{:,.0f}".format(costo_total_inventario) }}</h3>
+                <h3 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ "{:,.0f}".format(costo_total_inventario | default(0)) }}</h3>
                 <small class="text-muted" style="font-size: 0.75rem;">Valor invertido (Costo Bodega)</small>
             </div>
         </div>
@@ -41,7 +41,7 @@
         <div class="card card-custom h-100" style="border-left: 5px solid #28a745 !important;">
             <div class="card-body">
                 <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-tags me-1"></i> Total Venta (Precio Sugerido)</p>
-                <h3 class="fw-bolder m-0 text-success">${{ "{:,.0f}".format(valor_venta_inventario) }}</h3>
+                <h3 class="fw-bolder m-0 text-success">${{ "{:,.0f}".format(valor_venta_inventario | default(0)) }}</h3>
                 <small class="text-muted" style="font-size: 0.75rem;">Proyección de venta esperada</small>
             </div>
         </div>
