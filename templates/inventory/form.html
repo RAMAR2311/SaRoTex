@@ -56,6 +56,10 @@
                         {% endif %}
                     </div>
                     <div class="col-md-6 mt-4">
+                        <label class="form-label fw-bold text-brand-black">Proveedor (Opcional)</label>
+                        <input type="text" class="form-control bg-light border-0" name="proveedor" placeholder="Nombre de la empresa o distribuidor" value="{{ producto.proveedor if producto and producto.proveedor else '' }}">
+                    </div>
+                    <div class="col-md-6 mt-4">
                         <label class="form-label fw-bold text-brand-black">Observación (Opcional)</label>
                         <textarea class="form-control bg-light border-0" name="observacion" rows="3" placeholder="Notas sobre el producto...">{{ producto.observacion if producto and producto.observacion else '' }}</textarea>
                     </div>

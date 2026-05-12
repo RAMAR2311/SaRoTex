@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from io import BytesIO
 from werkzeug.utils import secure_filename
-from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash
+from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
 from models import db, Product, StockAdjustment, ProductVariant
 from decorators import admin_required
@@ -203,7 +203,8 @@ def nuevo():
             precio_minimo=float(request.form.get('precio_minimo', 0.0)),
             precio_sugerido=float(request.form.get('precio_sugerido', 0.0)),
             imagen=imagen_filename,
-            observacion=request.form.get('observacion')
+            observacion=request.form.get('observacion'),
+            proveedor=request.form.get('proveedor')
         )
         try:
             db.session.add(nuevo_prod)
@@ -265,6 +266,7 @@ def editar_producto(id):
         producto.precio_minimo = float(request.form.get('precio_minimo', 0.0))
         producto.precio_sugerido = float(request.form.get('precio_sugerido', 0.0))
         producto.observacion = request.form.get('observacion')
+        producto.proveedor = request.form.get('proveedor')
 
         # Sincronización de Subcategorías
         v_ids = request.form.getlist('variant_id[]')
@@ -392,6 +394,7 @@ def carga_masiva():
             p_minimo = float(row['precio_minimo']) if pd.notna(row['precio_minimo']) else 0.0
             p_sugerido = float(row['precio_sugerido']) if pd.notna(row['precio_sugerido']) else 0.0
             obs = str(row['observacion']) if 'observacion' in df.columns and pd.notna(row['observacion']) else ""
+            prov = str(row['proveedor']) if 'proveedor' in df.columns and pd.notna(row['proveedor']) else ""
             
             nombre_v = str(row['nombre_variante']).strip() if 'nombre_variante' in df.columns and pd.notna(row['nombre_variante']) else ""
             if nombre_v.lower() == 'nan':
@@ -408,7 +411,8 @@ def carga_masiva():
                     precio_costo=p_costo,
                     precio_minimo=p_minimo,
                     precio_sugerido=p_sugerido,
-                    observacion=obs
+                    observacion=obs,
+                    proveedor=prov
                 )
                 db.session.add(producto)
                 db.session.flush() # Obtener ID
@@ -433,6 +437,7 @@ def carga_masiva():
                     producto.precio_minimo = p_minimo
                     producto.precio_sugerido = p_sugerido
                     producto.observacion = obs
+                    if prov: producto.proveedor = prov
                     
                     ajuste = StockAdjustment(
                         product_id=producto.id,
@@ -473,6 +478,38 @@ def carga_masiva():
         flash(f'Error al procesar el archivo Excel: {str(e)}', 'danger')
 
     return redirect(url_for('inventory_bp.index'))
+
+@inventory_bp.route('/descargar_plantilla')
+@login_required
+@admin_required
+def descargar_plantilla():
+    # Estructura de la plantilla basada en la lógica de carga_masiva()
+    data = {
+        'nombre': ['Ejemplo Producto Simple', 'Ejemplo Producto con Variante', 'Ejemplo Producto con Variante'],
+        'sku': ['PROD-001', 'VAR-002', 'VAR-002'],
+        'nombre_variante': ['', 'Color Rojo', 'Color Azul'],
+        'cantidad_stock': [10, 5, 8],
+        'precio_costo': [50000, 120000, 120000],
+        'precio_minimo': [65000, 150000, 150000],
+        'precio_sugerido': [85000, 180000, 180000],
+        'observacion': ['Producto sin subcategorías', 'Variante A', 'Variante B'],
+        'proveedor': ['Proveedor Central', 'Proveedor Nacional', 'Proveedor Nacional']
+    }
+    df = pd.DataFrame(data)
+    
+    output = BytesIO()
+    # Usamos openpyxl o el motor por defecto disponible
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Inventario')
+    
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='plantilla_inventario_sora.xlsx'
+    )
 
 @inventory_bp.route('/eliminar/<int:id>', methods=['POST'])
 @login_required

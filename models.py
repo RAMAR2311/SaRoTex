@@ -25,6 +25,14 @@ class User(UserMixin, db.Model):
     arqueos = db.relationship('ArqueoCaja', backref='cajero', lazy=True)
     pagos_recibidos = db.relationship('StaffPayment', backref='receptor', lazy=True)
 
+    def __init__(self, nombre=None, email=None, telefono=None, password_hash=None, rol=None, **kwargs):
+        if nombre is not None: kwargs['nombre'] = nombre
+        if email is not None: kwargs['email'] = email
+        if telefono is not None: kwargs['telefono'] = telefono
+        if password_hash is not None: kwargs['password_hash'] = password_hash
+        if rol is not None: kwargs['rol'] = rol
+        super(User, self).__init__(**kwargs)
+
 class Product(db.Model):
     __tablename__ = 'products'
     
@@ -37,11 +45,25 @@ class Product(db.Model):
     precio_sugerido = db.Column(db.Numeric(10, 2), nullable=False)
     imagen = db.Column(db.String(255), nullable=True) # Nombre de la foto subida
     observacion = db.Column(db.Text, nullable=True) # Nota descriptiva
+    proveedor = db.Column(db.String(150), nullable=True) # Nuevo Campo
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
     ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True, cascade='all, delete-orphan')
     variantes = db.relationship('ProductVariant', backref='producto_padre', lazy=True, cascade='all, delete-orphan')
+
+    def __init__(self, nombre=None, sku=None, cantidad_stock=None, precio_costo=None, precio_minimo=None, precio_sugerido=None, imagen=None, observacion=None, proveedor=None, **kwargs):
+        if nombre is not None: kwargs['nombre'] = nombre
+        if sku is not None: kwargs['sku'] = sku
+        if cantidad_stock is not None: kwargs['cantidad_stock'] = cantidad_stock
+        if precio_costo is not None: kwargs['precio_costo'] = precio_costo
+        if precio_minimo is not None: kwargs['precio_minimo'] = precio_minimo
+        if precio_sugerido is not None: kwargs['precio_sugerido'] = precio_sugerido
+        if imagen is not None: kwargs['imagen'] = imagen
+        if observacion is not None: kwargs['observacion'] = observacion
+        if proveedor is not None: kwargs['proveedor'] = proveedor
+        super(Product, self).__init__(**kwargs)
+
     @property
     def total_stock(self):
         if self.variantes:
@@ -102,6 +124,16 @@ class ProductVariant(db.Model):
     precio_sugerido = db.Column(db.Numeric(10, 2), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
+    def __init__(self, product_id=None, nombre_variante=None, sku_variante=None, cantidad_stock=None, precio_costo=None, precio_minimo=None, precio_sugerido=None, **kwargs):
+        if product_id is not None: kwargs['product_id'] = product_id
+        if nombre_variante is not None: kwargs['nombre_variante'] = nombre_variante
+        if sku_variante is not None: kwargs['sku_variante'] = sku_variante
+        if cantidad_stock is not None: kwargs['cantidad_stock'] = cantidad_stock
+        if precio_costo is not None: kwargs['precio_costo'] = precio_costo
+        if precio_minimo is not None: kwargs['precio_minimo'] = precio_minimo
+        if precio_sugerido is not None: kwargs['precio_sugerido'] = precio_sugerido
+        super(ProductVariant, self).__init__(**kwargs)
+
 
 # ===================== MODELO DE VENTAS AMPLIADO (POS Terminal) =====================
 
@@ -120,6 +152,16 @@ class Sale(db.Model):
     detalles = db.relationship('SaleDetail', backref='venta', lazy=True, cascade="all, delete-orphan")
     pagos = db.relationship('SalePayment', backref='venta', lazy=True, cascade="all, delete-orphan")
 
+    def __init__(self, vendedor_id=None, fecha_venta=None, monto_total=None, costo_total=None, utilidad=None, metodo_pago=None, estado=None, **kwargs):
+        if vendedor_id is not None: kwargs['vendedor_id'] = vendedor_id
+        if fecha_venta is not None: kwargs['fecha_venta'] = fecha_venta
+        if monto_total is not None: kwargs['monto_total'] = monto_total
+        if costo_total is not None: kwargs['costo_total'] = costo_total
+        if utilidad is not None: kwargs['utilidad'] = utilidad
+        if metodo_pago is not None: kwargs['metodo_pago'] = metodo_pago
+        if estado is not None: kwargs['estado'] = estado
+        super(Sale, self).__init__(**kwargs)
+
 class SaleDetail(db.Model):
     __tablename__ = 'sale_details'
     
@@ -135,6 +177,17 @@ class SaleDetail(db.Model):
 
     variante = db.relationship('ProductVariant', backref='detalles_venta', lazy=True)
 
+    def __init__(self, sale_id=None, product_id=None, variant_id=None, cantidad_vendida=None, precio_venta_final=None, costo_unitario=None, es_externo=None, nombre_externo=None, **kwargs):
+        if sale_id is not None: kwargs['sale_id'] = sale_id
+        if product_id is not None: kwargs['product_id'] = product_id
+        if variant_id is not None: kwargs['variant_id'] = variant_id
+        if cantidad_vendida is not None: kwargs['cantidad_vendida'] = cantidad_vendida
+        if precio_venta_final is not None: kwargs['precio_venta_final'] = precio_venta_final
+        if costo_unitario is not None: kwargs['costo_unitario'] = costo_unitario
+        if es_externo is not None: kwargs['es_externo'] = es_externo
+        if nombre_externo is not None: kwargs['nombre_externo'] = nombre_externo
+        super(SaleDetail, self).__init__(**kwargs)
+
 
 class SalePayment(db.Model):
     """Consolidación Multimétodo — Un recibo puede tener N métodos de pago."""
@@ -144,6 +197,12 @@ class SalePayment(db.Model):
     sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
     metodo_pago = db.Column(db.String(50), nullable=False)  # efectivo, nequi, bancolombia, binance, tarjeta
     monto = db.Column(db.Numeric(10, 2), nullable=False)
+
+    def __init__(self, sale_id=None, metodo_pago=None, monto=None, **kwargs):
+        if sale_id is not None: kwargs['sale_id'] = sale_id
+        if metodo_pago is not None: kwargs['metodo_pago'] = metodo_pago
+        if monto is not None: kwargs['monto'] = monto
+        super(SalePayment, self).__init__(**kwargs)
 
 
 class StockAdjustment(db.Model):
@@ -157,6 +216,15 @@ class StockAdjustment(db.Model):
     stock_anterior = db.Column(db.Integer, nullable=False)
     stock_nuevo = db.Column(db.Integer, nullable=False)
     fecha_ajuste = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    def __init__(self, product_id=None, variant_id=None, admin_id=None, tipo_movimiento=None, stock_anterior=None, stock_nuevo=None, **kwargs):
+        if product_id is not None: kwargs['product_id'] = product_id
+        if variant_id is not None: kwargs['variant_id'] = variant_id
+        if admin_id is not None: kwargs['admin_id'] = admin_id
+        if tipo_movimiento is not None: kwargs['tipo_movimiento'] = tipo_movimiento
+        if stock_anterior is not None: kwargs['stock_anterior'] = stock_anterior
+        if stock_nuevo is not None: kwargs['stock_nuevo'] = stock_nuevo
+        super(StockAdjustment, self).__init__(**kwargs)
 
 class ArqueoCaja(db.Model):
     __tablename__ = 'arqueo_caja'
@@ -187,6 +255,14 @@ class Maneo(db.Model):
 
     producto = db.relationship('Product', backref='maneos', lazy=True)
     variante = db.relationship('ProductVariant', backref='maneos_rel', lazy=True)
+
+    def __init__(self, product_id=None, variant_id=None, local_vecino=None, cantidad=None, estado='PENDIENTE', **kwargs):
+        if product_id is not None: kwargs['product_id'] = product_id
+        if variant_id is not None: kwargs['variant_id'] = variant_id
+        if local_vecino is not None: kwargs['local_vecino'] = local_vecino
+        if cantidad is not None: kwargs['cantidad'] = cantidad
+        if estado is not None: kwargs['estado'] = estado
+        super(Maneo, self).__init__(**kwargs)
 
 class Expense(db.Model):
     __tablename__ = 'expenses'
@@ -262,3 +338,9 @@ class StaffPayment(db.Model):
     monto = db.Column(db.Numeric(10, 2), nullable=False)
     observacion = db.Column(db.String(255), nullable=True)
     fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    def __init__(self, user_id=None, monto=None, observacion=None, **kwargs):
+        if user_id is not None: kwargs['user_id'] = user_id
+        if monto is not None: kwargs['monto'] = monto
+        if observacion is not None: kwargs['observacion'] = observacion
+        super(StaffPayment, self).__init__(**kwargs)

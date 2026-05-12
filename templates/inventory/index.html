@@ -55,6 +55,7 @@
                 <tr>
                     <th width="120" class="ps-4">SKU</th>
                     <th>PRODUCTO</th>
+                    <th>PROVEEDOR</th>
                     <th width="150" class="text-center">STOCK</th>
                     <th width="150" class="text-end">PRECIO COSTO</th>
                     <th width="150" class="text-end">PRECIO MÍNIMO</th>
@@ -67,6 +68,7 @@
                 <tr>
                     <td class="text-muted"><small><strong>{{ p.sku }}</strong></small></td>
                     <td class="fw-semibold text-brand-black">{{ p.nombre }}</td>
+                    <td class="text-muted small">{{ p.proveedor or '—' }}</td>
                     <td>
                         <!-- Regla Estricta: Badge rojo si el stock <= 5 -->
                         {% if p.total_stock <= 5 %}
@@ -138,7 +140,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="7" class="text-center py-5 text-muted">
                         <!-- Icono en Rosa Pastel -->
                         <i class="fa-solid fa-box-open fs-1 mb-3 text-brand-pink"></i>
                         <p class="mb-0">El inventario está vacío.</p>
@@ -172,7 +174,7 @@
                     
                     <div class="alert alert-info border-0 rounded-3 mb-4">
                         <h6 class="fw-bold mb-1 small"><i class="fa-solid fa-circle-info me-1"></i>Estructura requerida:</h6>
-                        <p class="mb-1 small">nombre, sku, cantidad_stock, precio_costo, precio_minimo, precio_sugerido, observacion, <strong>nombre_variante</strong>.</p>
+                        <p class="mb-1 small">nombre, sku, cantidad_stock, precio_costo, precio_minimo, precio_sugerido, observacion, <strong>proveedor</strong>, <strong>nombre_variante</strong>.</p>
                         <p class="mb-0 small text-muted fst-italic">* Usa <strong>nombre_variante</strong> (opcional) para cargar subcategorías como "Rojo - Talla M". Si el SKU ya existe, se agruparán bajo el mismo producto padre.</p>
                     </div>
 
@@ -182,7 +184,7 @@
                     </div>
 
                     <div class="text-center">
-                        <a href="#" class="text-success small fw-bold text-decoration-none"><i class="fa-solid fa-download me-1"></i>Descargar Plantilla de Ejemplo</a>
+                        <a href="{{ url_for('inventory_bp.descargar_plantilla') }}" class="text-success small fw-bold text-decoration-none"><i class="fa-solid fa-download me-1"></i>Descargar Plantilla de Ejemplo</a>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
